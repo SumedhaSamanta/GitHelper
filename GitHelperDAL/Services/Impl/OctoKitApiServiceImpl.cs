@@ -75,7 +75,7 @@ namespace GitHelperDAL
             List<RepoDetailsModel> repoList = new List<RepoDetailsModel>();
             foreach (var repository in repositories)
             {
-                repoList.Add(new RepoDetailsModel { Name = repository.Name, Owner = repository.Owner.Name });
+                repoList.Add(new RepoDetailsModel { Name = repository.Name, Owner = repository.Owner.Login });
             }
             return repoList;
 
@@ -89,11 +89,17 @@ namespace GitHelperDAL
             return date;
         }
 
-        //It gets the language of the particular repository
-        public override string GetRepositoryLanguage(string Owner, string RepositoryName)
+        //It gets the language of the particular repository (currently being modified)
+        public override List<LanguageDetails> GetRepositoryLanguages(string Owner, string RepositoryName)
         {
-            var language = clientDetail.Repository.Get(Owner, RepositoryName).Result;
-            return language.Language;
+            List<LanguageDetails> languagesUsed = new List<LanguageDetails>();
+            var repository = clientDetail.Repository.Get(Owner, RepositoryName).Result;
+            foreach(var language in clientDetail.Repository.GetAllLanguages(repository.Id).Result)
+            {
+                Console.WriteLine(language.Name+ " "+ language.NumberOfBytes);
+                languagesUsed.Add(new LanguageDetails { Name = language.Name, NumberOfBytes = language.NumberOfBytes });
+            }
+            return languagesUsed;
         }
 
         //It gets commit author name,commit message, commit date

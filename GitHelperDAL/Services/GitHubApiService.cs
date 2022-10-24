@@ -17,7 +17,7 @@ namespace GitHelperDAL.Services
 
         public abstract string GetRepositoryCreationDate(string Owner, string RepositoryName);
 
-        public abstract string GetRepositoryLanguage(string Owner, string RepositoryName); //Check if this is correct
+        public abstract List<LanguageDetails> GetRepositoryLanguages(string Owner, string RepositoryName);
 
         public abstract List<CommitDetailsModel> GetCommitDetails(string Owner, string RepositoryName); // Not implementing pagination
 
@@ -25,7 +25,7 @@ namespace GitHelperDAL.Services
 
 
         //Factory Pattern Implementation
-        public GitHubApiService getInstance(string UserName, string Token)
+        public static GitHubApiService getInstance(string UserName, string Token)
         {
             return new OctoKitApiServiceImpl(UserName, Token);
 
