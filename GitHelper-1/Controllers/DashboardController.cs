@@ -26,8 +26,8 @@ namespace GitHelper_1.Controllers
         public UserDetails GetUserDetails()
         {
             string username = "SumedhaSamanta";
-            string token= "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";
-            //get repo-names, repo-owner name and user-avatar-url
+            string token= "";
+            
             List<RepoDetailsModel> repoList = GitHubApiService.getInstance(username,token).GetRepoDetails();
             string avatarURL = GitHubApiService.getInstance(username, token).GetAvtarUrl();
 
@@ -40,24 +40,24 @@ namespace GitHelper_1.Controllers
 
         [HttpGet]
         [ActionName("GetCommits")]
+
+        //get details of the commits (commitAuthorName, commitMessage, commitDate)
         public List<List<string>> GetCommits(string ownerName, string repoName)
         {
-            //string userName = cookieManager.GetUserName();
-            //string token = cookieManager.GetToken();
+            string userName = "";
+            string token = "";
 
             List<List<string>> result = new List<List<string>>();
 
-            //get details of the commits (commitAuthorName, commitMessage, commitDate)
-
-            //List<CommitDetailsModel> commitsList = DAL.GetCommitDetails(ownerName, repoName);
-            /*foreach(CommitDetailsModel commit in commitsList)
+            List<CommitDetailsModel> commitsList = GitHubApiService.getInstance(userName,token).GetCommitDetails(ownerName, repoName);
+            foreach(CommitDetailsModel commit in commitsList)
             {
                 List<string> commitDetails = new List<string>();
                 commitDetails.Add(commit.AuthorName);
                 commitDetails.Add(commit.CommitMessage);
                 commitDetails.Add(commit.DateStr);
                 result.Add(commitDetails);
-            }*/
+            }
 
             return result;
         }
@@ -78,16 +78,16 @@ namespace GitHelper_1.Controllers
             Dictionary<int, int> dayCount = GetDayCount(month, year);
 
             //fetch commits of the repo
-            //List<CommitDetailsModel> commitsList = DAL.GetCommitDetails(ownerName, repoName);
-            /*foreach (CommitDetailsModel commit in commitsList)
+            List<CommitDetailsModel> commitsList = GitHubApiService.getInstance(userName, token).GetCommitDetails(ownerName, repoName);
+            foreach (CommitDetailsModel commit in commitsList)
             {
                 Dictionary<string, string> monthYear = new Dictionary<string, string>();
 
-                DateTime commitDate = DateFormatter.Format(commit.Date);
-                string commitMonth = commitDate.ToString("MMMM");
-                string CommitYear = commitDate.ToString("yyyy");
+                DateTime commitDate = new DateFormatter().ConvertUTCtoIST(commit.DateStr);
+                string commitMonth = commitDate.ToString("MMMM").ToLower();
+                string commitYear = commitDate.ToString("yyyy");
 
-                if (commitMonth.Equals(month) && CommitYear.Equals(year))
+                if (commitMonth.Equals(month.ToLower()) && commitYear.Equals(year))
                 {
                     string date = commitDate.ToString("d");
                     int day = int.Parse(date);
@@ -101,7 +101,7 @@ namespace GitHelper_1.Controllers
                 commitCount.Add("commits",entry.Value);
                 commitCount.Add("day", entry.Key);
                 result.Add(commitCount);
-            }*/
+            }
 
             return result;
         }
@@ -112,14 +112,17 @@ namespace GitHelper_1.Controllers
         {
             List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
 
-            //fetch commits of the repo
-            //List<CommitDetailsModel> commitsList = DAL.GetCommitDetails(ownerName, repoName);
+            string userName = "";
+            string token = "";
 
-            /*foreach(CommitDetailsModel commit in commitsList)
+            //fetch commits of the repo
+            List<CommitDetailsModel> commitsList = GitHubApiService.getInstance(userName,token).GetCommitDetails(ownerName, repoName);
+
+            foreach(CommitDetailsModel commit in commitsList)
             {
                 Dictionary<string, string> monthYear = new Dictionary<string, string>();
 
-                DateTime commitDate = DateFormatter.Format(commit.Date);
+                DateTime commitDate = new DateFormatter().ConvertUTCtoIST(commit.DateStr);
                 string month = commitDate.ToString("MMMM");
                 string year = commitDate.ToString("yyy");
                 monthYear.Add("month", month);
@@ -129,13 +132,8 @@ namespace GitHelper_1.Controllers
                 {
                     result.Add(monthYear);
                 }
-            }*/
+            }
 
-            //dummy values
-            Dictionary<string, string> monthYear = new Dictionary<string, string>();
-            monthYear.Add("month", "Feb");
-            monthYear.Add("year", "2018");
-            result.Add(monthYear);
             return result;
         }
 
@@ -143,12 +141,15 @@ namespace GitHelper_1.Controllers
         [ActionName("GetReposInfo")]
         public List<string> GetReposInfo(string ownerName, string repoName)
         {
-            int numberOfContributors = 0;//DAL.getNumberOfContributors(ownerName, repoName);
-            //List<LanguageDetails> languages = DAL.GetRepositoryLanguages(string Owner, string RepositoryName);
+            string userName = "";
+            string token = "";
+
+            //int numberOfContributors = GitHubApiService.getInstance(userName,token).getNumberOfContributors(ownerName, repoName);
+            //List<LanguageDetails> languagesUsed = GitHubApiService.getInstance(userName, token).GetRepositoryLanguages(ownerName, repoName);
 
             List<string> result = new List<string>();
 
-            result.Add(numberOfContributors.ToString());
+            //result.Add(numberOfContributors.ToString());
             //result.Add(languagesUsed);
 
             return result;
