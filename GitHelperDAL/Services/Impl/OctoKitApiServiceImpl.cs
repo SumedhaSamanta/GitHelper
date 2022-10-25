@@ -51,9 +51,9 @@ namespace GitHelperDAL
 
 
         //It gets all the basic information of the user
-        public static async Task<User> GetUser(GitHubClient client)
+        public static Task<User> GetUser(GitHubClient client)
         {
-            var user = await client.User.Current();
+            var user = client.User.Current();
             return user;
         }
 
@@ -75,7 +75,7 @@ namespace GitHelperDAL
             List<RepoDetailsModel> repoList = new List<RepoDetailsModel>();
             foreach (var repository in repositories)
             {
-                repoList.Add(new RepoDetailsModel { Name = repository.Name, Owner = repository.Owner.Login });
+                repoList.Add(new RepoDetailsModel { repoName = repository.Name, owner = repository.Owner.Login });
             }
             return repoList;
 

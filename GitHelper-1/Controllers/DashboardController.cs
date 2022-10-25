@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using System.Web.Mvc;
 using RouteAttribute = System.Web.Http.RouteAttribute;
 using HttpGetAttribute = System.Web.Http.HttpGetAttribute;
 using GitHelper_1.Utilities;
@@ -15,25 +14,40 @@ using System.Xml.Linq;
 using System.Drawing;
 using GitHelperDAL.Model;
 using GitHelperDAL.Services;
+using System.Web.Security;
+using System.Net.Http.Headers;
 
 namespace GitHelper_1.Controllers
 {
+    [Authorize]
     public class DashboardController : ApiController
     {
+
         [HttpGet]
         [ActionName("GetUserDetails")]
         //return avatar-url, list of repo names and owner names
         public UserDetails GetUserDetails()
         {
-            string username = "SumedhaSamanta";
-            string token= "";
-            
-            List<RepoDetailsModel> repoList = GitHubApiService.getInstance(username,token).GetRepoDetails();
-            string avatarURL = GitHubApiService.getInstance(username, token).GetAvtarUrl();
+            AuthenticationData authData = null;
+            CookieHeaderValue cookie = Request.Headers.GetCookies(FormsAuthentication.FormsCookieName).FirstOrDefault();
 
-            UserDetails result = new UserDetails();
-            result.repoList = repoList;
-            result.userAvatarUrl = avatarURL;
+            if (cookie != null)
+            {
+                string ticket = cookie[FormsAuthentication.FormsCookieName].Value;
+                authData = AuthenticationTicketUtil.getAuthenticationDataFromTicket(ticket);
+
+            }
+            else
+            {
+                //think of throwing error message
+            }
+
+            GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
+            //get repo-names, repo - owner name and user - avatar - url
+            List<RepoDetailsModel> repoList = client.GetRepoDetails();
+            string avatarURL = client.GetAvtarUrl();
+
+            UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
 
             return result;
         }

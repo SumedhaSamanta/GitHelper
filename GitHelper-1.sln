@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHelper-1", "GitHelper-1\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitHelperDAL", "GitHelperDAL\GitHelperDAL.csproj", "{69B00FE8-2155-495B-A98E-E330C2C509DB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAuth", "TestAuth\TestAuth.csproj", "{36A05A78-F1F8-42EA-BD53-6EAF27ECEB32}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestDal", "TestDal\TestDal.csproj", "{5D603185-DDB0-44F2-822F-091E6EB967B5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{69B00FE8-2155-495B-A98E-E330C2C509DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69B00FE8-2155-495B-A98E-E330C2C509DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69B00FE8-2155-495B-A98E-E330C2C509DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36A05A78-F1F8-42EA-BD53-6EAF27ECEB32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36A05A78-F1F8-42EA-BD53-6EAF27ECEB32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36A05A78-F1F8-42EA-BD53-6EAF27ECEB32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36A05A78-F1F8-42EA-BD53-6EAF27ECEB32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D603185-DDB0-44F2-822F-091E6EB967B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D603185-DDB0-44F2-822F-091E6EB967B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D603185-DDB0-44F2-822F-091E6EB967B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D603185-DDB0-44F2-822F-091E6EB967B5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

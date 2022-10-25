@@ -8,7 +8,7 @@ namespace GitHelperDAL.Model
 {
     public class RepoDetailsModel
     {
-        public string Name { get; set; }
-        public string Owner { get; set; }
+        public string repoName { get; set; }
+        public string owner { get; set; }
     }
 }
