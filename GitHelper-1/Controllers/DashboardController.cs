@@ -17,6 +17,7 @@ using GitHelperDAL.Services;
 using System.Web.Security;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization;
+using System.Web.Configuration;
 
 namespace GitHelper_1.Controllers
 {
@@ -37,7 +38,10 @@ namespace GitHelper_1.Controllers
             }
             else
             {
-                //think of throwing error message
+                //throwing error message
+
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
             }
 
             return authData;
@@ -49,16 +53,26 @@ namespace GitHelper_1.Controllers
         //return avatar-url, list of repo names and owner names
         public UserDetails GetUserDetails()
         {
-            AuthenticationData authData = GetAuthCookieDetails();
+            try
+            {
+                AuthenticationData authData = GetAuthCookieDetails();
 
-            GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
-            //get repo-names, repo - owner name and user - avatar - url
-            List<RepoDetailsModel> repoList = client.GetRepoDetails();
-            string avatarURL = client.GetAvtarUrl();
+                GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
+                //get repo-names, repo - owner name and user - avatar - url
+                List<RepoDetailsModel> repoList = client.GetRepoDetails();
+                string avatarURL = client.GetAvtarUrl();
 
-            UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
+                UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
 
-            return result;
+                return result;
+            }
+            catch
+            {
+                //throwing error message
+
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
         }
 
         [HttpGet]
@@ -67,15 +81,29 @@ namespace GitHelper_1.Controllers
         //get details of the commits (commitAuthorName, commitMessage, commitDate)
         public List<CommitDetailsModel> GetCommits(string ownerName, string repoName)
         {
-            AuthenticationData authData = GetAuthCookieDetails();
-
-            List<CommitDetailsModel> commitsList = GitHubApiService.getInstance(authData.userName, authData.userToken).GetCommitDetails(ownerName, repoName);
-            foreach(CommitDetailsModel commit in commitsList)
+            try
             {
-                commit.commitDateTime = DateFormatter.ConvertToUserPref(commit.commitDateTime);
-            }
+                AuthenticationData authData = GetAuthCookieDetails();
+                GitHubApiService gitHubApiService = GitHubApiService.getInstance(authData.userName, authData.userToken);
+                List<CommitDetailsModel> commitsList = gitHubApiService.GetCommitDetails(ownerName, repoName);
 
-            return commitsList;
+                foreach (CommitDetailsModel commit in commitsList)
+                {
+                    commit.commitDateTime = DateFormatter.ConvertToUserPref(commit.commitDateTime);
+                }
+
+                return commitsList;
+            }
+            catch(HttpResponseException ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+            catch(Exception ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
+                throw new HttpResponseException(resp);
+            }
         }
 
         [HttpGet]
@@ -84,15 +112,28 @@ namespace GitHelper_1.Controllers
         //get details of the commits (commitAuthorName, commitMessage, commitDate)
         public List<CommitDetailsModel> GetPaginatedCommits(string ownerName, string repoName, int pageNumber, int pageSize)
         {
-            AuthenticationData authData = GetAuthCookieDetails();
-
-            List<CommitDetailsModel> commitsList = GitHubApiService.getInstance(authData.userName, authData.userToken).GetPaginatedCommits(ownerName, repoName, pageNumber, pageSize);
-            foreach (CommitDetailsModel commit in commitsList)
+            try
             {
-                commit.commitDateTime = DateFormatter.ConvertToUserPref(commit.commitDateTime);
-            }
+                AuthenticationData authData = GetAuthCookieDetails();
 
-            return commitsList;
+                List<CommitDetailsModel> commitsList = GitHubApiService.getInstance(authData.userName, authData.userToken).GetPaginatedCommits(ownerName, repoName, pageNumber, pageSize);
+                foreach (CommitDetailsModel commit in commitsList)
+                {
+                    commit.commitDateTime = DateFormatter.ConvertToUserPref(commit.commitDateTime);
+                }
+
+                return commitsList;
+            }
+            catch (HttpResponseException ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+            catch (Exception ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
+                throw new HttpResponseException(resp);
+            }
         }
 
 
@@ -143,69 +184,95 @@ namespace GitHelper_1.Controllers
         [ActionName("GetMonthYearList")]
         public List<Dictionary<string, string>> GetMonthYearList(string ownerName, string repoName) //List<Dictionary<string, string>>
         {
-            List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
-
-            AuthenticationData authData = GetAuthCookieDetails();
-
-            //fetch commits of the repo
-            DateTimeOffset localRepoCreatingDate = DateFormatter.ConvertToUserPref(GitHubApiService.getInstance(authData.userName,authData.userToken).GetRepositoryCreationDate(ownerName, repoName));
-
-            DateTimeOffset localRepoCreationMonth = DateFormatter.CreateUserPrefDateTimeOffset(new DateTime(localRepoCreatingDate.Year, localRepoCreatingDate.Month, 1));
-
-            DateTimeOffset iterator = DateFormatter.getCurrentUserPrefTime();
-
-            List<Dictionary<string, string>> monthYearList = new List<Dictionary<string, string>>();
-
-            while (localRepoCreationMonth <= iterator)
+            try
             {
-                Dictionary<string, string> monthYear = new Dictionary<string, string>();
-                monthYear.Add("month", iterator.ToString("MMMM"));
-                monthYear.Add("year", iterator.ToString("yyyy"));
+                List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
 
-                monthYearList.Add(monthYear);
+                AuthenticationData authData = GetAuthCookieDetails();
 
-                iterator = iterator.AddMonths(-1);
+                //fetch commits of the repo
+                DateTimeOffset localRepoCreatingDate = DateFormatter.ConvertToUserPref(GitHubApiService.getInstance(authData.userName, authData.userToken).GetRepositoryCreationDate(ownerName, repoName));
+
+                DateTimeOffset localRepoCreationMonth = DateFormatter.CreateUserPrefDateTimeOffset(new DateTime(localRepoCreatingDate.Year, localRepoCreatingDate.Month, 1));
+
+                DateTimeOffset iterator = DateFormatter.getCurrentUserPrefTime();
+
+                List<Dictionary<string, string>> monthYearList = new List<Dictionary<string, string>>();
+
+                while (localRepoCreationMonth <= iterator)
+                {
+                    Dictionary<string, string> monthYear = new Dictionary<string, string>();
+                    monthYear.Add("month", iterator.ToString("MMMM"));
+                    monthYear.Add("year", iterator.ToString("yyyy"));
+
+                    monthYearList.Add(monthYear);
+
+                    iterator = iterator.AddMonths(-1);
+                }
+
+                return monthYearList;
             }
-
-            return monthYearList;
+            catch (HttpResponseException ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+            catch (Exception ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
+                throw new HttpResponseException(resp);
+            }
         }
 
         [HttpGet]
         [ActionName("GetDateCount")]
         public List<Dictionary<string, int>> GetDateCount(string ownerName, string repoName, string month, string year) //List<Dictionary<string, int>>
         {
-            List<Dictionary<string, int>> result = new List<Dictionary<string, int>>();
-
-            AuthenticationData authData = GetAuthCookieDetails();
-
-            DateTimeOffset localFirstDateOfMonth = DateFormatter.CreateUserPrefDateTimeOffset(DateTime.ParseExact(month + " " + year, "MMMM yyyy", null));
-
-            int numberOfDays = DateTime.DaysInMonth(localFirstDateOfMonth.Year, localFirstDateOfMonth.Month);
-
-            DateTimeOffset localLastDateofMonth = DateFormatter.CreateUserPrefDateTimeOffset(new DateTime(localFirstDateOfMonth.Year, localFirstDateOfMonth.Month, numberOfDays));
-
-
-            //call function to get commit list for specified dates
-
-            List<CommitDetailsModel> commitList = GitHubApiService.getInstance(authData.userName, authData.userToken).GetCommitsForInterval(ownerName, 
-                repoName, DateFormatter.ConvertToUtc(localFirstDateOfMonth), DateFormatter.ConvertToUtc(localLastDateofMonth));
-
-            int[] numCommits = new int[numberOfDays];
-
-            foreach (var commit in commitList)
+            try
             {
-                numCommits[DateFormatter.ConvertToUserPref(commit.commitDateTime).Day] += 1;
-            }
+                List<Dictionary<string, int>> result = new List<Dictionary<string, int>>();
 
-            for (int i = 0; i < numCommits.Length; i++)
+                AuthenticationData authData = GetAuthCookieDetails();
+
+                DateTimeOffset localFirstDateOfMonth = DateFormatter.CreateUserPrefDateTimeOffset(DateTime.ParseExact(month + " " + year, "MMMM yyyy", null));
+
+                int numberOfDays = DateTime.DaysInMonth(localFirstDateOfMonth.Year, localFirstDateOfMonth.Month);
+
+                DateTimeOffset localLastDateofMonth = DateFormatter.CreateUserPrefDateTimeOffset(new DateTime(localFirstDateOfMonth.Year, localFirstDateOfMonth.Month, numberOfDays));
+
+
+                //call function to get commit list for specified dates
+
+                List<CommitDetailsModel> commitList = GitHubApiService.getInstance(authData.userName, authData.userToken).GetCommitsForInterval(ownerName,
+                    repoName, DateFormatter.ConvertToUtc(localFirstDateOfMonth), DateFormatter.ConvertToUtc(localLastDateofMonth));
+
+                int[] numCommits = new int[numberOfDays];
+
+                foreach (var commit in commitList)
+                {
+                    numCommits[DateFormatter.ConvertToUserPref(commit.commitDateTime).Day] += 1;
+                }
+
+                for (int i = 0; i < numCommits.Length; i++)
+                {
+                    Dictionary<string, int> commitperDay = new Dictionary<string, int>();
+                    commitperDay.Add("day", i + 1);
+                    commitperDay.Add("commits", numCommits[i]);
+                    result.Add(commitperDay);
+                }
+
+                return result;
+            }
+            catch (HttpResponseException ex)
             {
-                Dictionary<string, int> commitperDay = new Dictionary<string, int>();
-                commitperDay.Add("day", i + 1);
-                commitperDay.Add("commits", numCommits[i]);
-                result.Add(commitperDay);
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
             }
-
-            return result;
+            catch (Exception ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
+                throw new HttpResponseException(resp);
+            }
         }
 
 
@@ -232,11 +299,24 @@ namespace GitHelper_1.Controllers
         [ActionName("GetRepoLanguages")]
         public List<LanguageDetails> GetRepoLanguages(string ownerName, string repoName)
         {
-            AuthenticationData authData = GetAuthCookieDetails();
+            try
+            {
+                AuthenticationData authData = GetAuthCookieDetails();
 
-            List<LanguageDetails> languagesUsed = GitHubApiService.getInstance(authData.userName, authData.userToken).GetRepositoryLanguages(ownerName, repoName);
+                List<LanguageDetails> languagesUsed = GitHubApiService.getInstance(authData.userName, authData.userToken).GetRepositoryLanguages(ownerName, repoName);
 
-            return languagesUsed;
+                return languagesUsed;
+            }
+            catch (HttpResponseException ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+            catch (Exception ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
+                throw new HttpResponseException(resp);
+            }
         }
 
 
