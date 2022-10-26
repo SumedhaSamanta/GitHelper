@@ -181,6 +181,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\AuthenticationTicketUtil.cs" />
     <Compile Include="Utilities\CookieManager.cs" />
+    <Compile Include="Utilities\DateFormatter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\HelpPage\HelpPage.css" />

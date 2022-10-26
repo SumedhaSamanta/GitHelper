@@ -15,13 +15,17 @@ namespace GitHelperDAL.Services
 
         public abstract List<RepoDetailsModel> GetRepoDetails();
 
-        public abstract string GetRepositoryCreationDate(string Owner, string RepositoryName);
+        public abstract DateTimeOffset GetRepositoryCreationDate(string Owner, string RepositoryName);
 
         public abstract List<LanguageDetails> GetRepositoryLanguages(string Owner, string RepositoryName);
 
         public abstract List<CommitDetailsModel> GetCommitDetails(string Owner, string RepositoryName); // Not implementing pagination
 
         public abstract int GetTotalNoOfCommits(string Owner, string RepositoryName); //Check use (not the full version)
+
+        public abstract List<CommitDetailsModel> GetCommitsForInterval(string Owner, string RepositoryName, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp);
+
+        public abstract List<CommitDetailsModel> GetPaginatedCommits(string Owner, string RepositoryName, int pageNumber, int pageSize);
 
 
         //Factory Pattern Implementation

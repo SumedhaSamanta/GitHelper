@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using GitHelperDAL.Model;
@@ -82,10 +83,10 @@ namespace GitHelperDAL
         }
 
         //It gets the date of repository creation date
-        public override string GetRepositoryCreationDate(string Owner, string RepositoryName)
+        public override DateTimeOffset GetRepositoryCreationDate(string Owner, string RepositoryName)
         {
-            var creationDate = clientDetail.Repository.Get(Owner, RepositoryName).Result;
-            string date = creationDate.CreatedAt.Date.ToShortDateString();
+            var repo = clientDetail.Repository.Get(Owner, RepositoryName).Result;
+            DateTimeOffset date = repo.CreatedAt.UtcDateTime; // This returns utc time itself dont convert using toUniverseTime();
             return date;
         }
 
@@ -93,11 +94,9 @@ namespace GitHelperDAL
         public override List<LanguageDetails> GetRepositoryLanguages(string Owner, string RepositoryName)
         {
             List<LanguageDetails> languagesUsed = new List<LanguageDetails>();
-            var repository = clientDetail.Repository.Get(Owner, RepositoryName).Result;
-            foreach(var language in clientDetail.Repository.GetAllLanguages(repository.Id).Result)
+            foreach(var language in clientDetail.Repository.GetAllLanguages(Owner, RepositoryName).Result)
             {
-                Console.WriteLine(language.Name+ " "+ language.NumberOfBytes);
-                languagesUsed.Add(new LanguageDetails { Name = language.Name, NumberOfBytes = language.NumberOfBytes });
+                languagesUsed.Add(new LanguageDetails { language = language.Name, bytesOfCode = language.NumberOfBytes });
             }
             return languagesUsed;
         }
@@ -110,7 +109,7 @@ namespace GitHelperDAL
             foreach (var cm in commits)
             {
                 var comit = clientDetail.Repository.Commit.Get(Owner, RepositoryName, cm.Sha).Result;
-                commitMessages.Add(new CommitDetailsModel { AuthorName = comit.Commit.Author.Name, CommitMessage = comit.Commit.Message, DateStr = comit.Commit.Committer.Date.Date.ToShortDateString() });
+                commitMessages.Add(new CommitDetailsModel { commitAuthorName = comit.Commit.Author.Name, commitMessage = comit.Commit.Message, commitDateTime = comit.Commit.Committer.Date }) ;
             }
             return commitMessages;
         }
@@ -125,6 +124,39 @@ namespace GitHelperDAL
                 totalNoOfCommits++;
             }
             return totalNoOfCommits;
+        }
+
+        public override List<CommitDetailsModel> GetCommitsForInterval(string Owner, string RepositoryName, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp)
+        {
+
+            List<CommitDetailsModel> commitMessages = new List<CommitDetailsModel>();
+            var request = new CommitRequest { Since = startTimeStamp, Until = endTimeStamp };
+            var commitList = clientDetail.Repository.Commit.GetAll(Owner, RepositoryName, request).Result;
+            foreach (var cm in commitList)
+            {
+                var comit = clientDetail.Repository.Commit.Get(Owner, RepositoryName, cm.Sha).Result;
+                commitMessages.Add(new CommitDetailsModel { commitAuthorName = comit.Commit.Author.Name, commitMessage = comit.Commit.Message, commitDateTime = comit.Commit.Committer.Date });
+            }
+            return commitMessages;
+        }
+
+        public override List<CommitDetailsModel> GetPaginatedCommits(string Owner, string RepositoryName, int pageNumber, int pageSize)
+        {
+
+            List<CommitDetailsModel> commitMessages = new List<CommitDetailsModel>();
+            var request = new ApiOptions
+            {
+                PageSize = pageSize,
+                StartPage = pageNumber, // 1-indexed value
+                PageCount = 1
+            };
+            var commitList = clientDetail.Repository.Commit.GetAll(Owner, RepositoryName, request).Result;
+            foreach (var cm in commitList)
+            {
+                var comit = clientDetail.Repository.Commit.Get(Owner, RepositoryName, cm.Sha).Result;
+                commitMessages.Add(new CommitDetailsModel { commitAuthorName = comit.Commit.Author.Name, commitMessage = comit.Commit.Message, commitDateTime = comit.Commit.Committer.Date });
+            }
+            return commitMessages;
         }
 
     }

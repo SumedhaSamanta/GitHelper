@@ -95,11 +95,10 @@ namespace GitHelper_1.Controllers
                 return Request.CreateResponse(HttpStatusCode.OK,
                 new StatusDetailsModel { status = "Unauthenticated", message = "User is Not Authenticated" });
             }
-            //return successful logout confirmation
             
         }
 
-        public bool IsValidCredentials(String username, String token)
+        private bool IsValidCredentials(String username, String token)
         {
             //username and token should not be empty
             if (String.IsNullOrEmpty(username) || String.IsNullOrEmpty(token))
