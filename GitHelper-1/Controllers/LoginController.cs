@@ -1,12 +1,8 @@
 ﻿using GitHelper_1.Models;
 using GitHelper_1.Utilities;
 using GitHelperDAL.Services;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Swashbuckle.Swagger;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -16,7 +12,6 @@ using System.Web.Security;
 using ActionNameAttribute = System.Web.Http.ActionNameAttribute;
 using HttpGetAttribute = System.Web.Http.HttpGetAttribute;
 using HttpPostAttribute = System.Web.Http.HttpPostAttribute;
-using RouteAttribute = System.Web.Http.RouteAttribute;
 
 namespace GitHelper_1.Controllers
 {

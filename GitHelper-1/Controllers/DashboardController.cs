@@ -227,7 +227,7 @@ namespace GitHelper_1.Controllers
 
                 foreach (var commit in commitList)
                 {
-                    numCommits[DateFormatter.ConvertToUserPref(commit.commitDateTime).Day] += 1;
+                    numCommits[DateFormatter.ConvertToUserPref(commit.commitDateTime).Day - 1] += 1;
                 }
 
                 for (int i = 0; i < numCommits.Length; i++)
