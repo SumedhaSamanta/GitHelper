@@ -19,5 +19,16 @@ namespace GitHelper_1
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
         }
+
+        protected void Application_BeginRequest(Object sender, EventArgs e)
+        {
+            HttpApplication context = (HttpApplication)sender;
+            context.Response.SuppressFormsAuthenticationRedirect = true;
+
+            //if (HttpContext.Current.Request.HttpMethod == "OPTIONS")
+            //{
+            //    HttpContext.Current.Response.Flush();
+            //}
+        }
     }
 }
