@@ -4,27 +4,21 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using RouteAttribute = System.Web.Http.RouteAttribute;
 using HttpGetAttribute = System.Web.Http.HttpGetAttribute;
 using GitHelper_1.Utilities;
-using System.Web.UI.WebControls;
 using ActionNameAttribute = System.Web.Http.ActionNameAttribute;
 using GitHelper_1.Models;
-using System.Xml.Linq;
-using System.Drawing;
 using GitHelperDAL.Model;
 using GitHelperDAL.Services;
 using System.Web.Security;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization;
-using System.Web.Configuration;
 
 namespace GitHelper_1.Controllers
 {
     [Authorize]
     public class DashboardController : ApiController
     {
-
+        //read data (username and token) from authentication cookie
         private AuthenticationData GetAuthCookieDetails()
         {
             AuthenticationData authData = null;
@@ -39,7 +33,6 @@ namespace GitHelper_1.Controllers
             else
             {
                 //throwing error message
-
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
@@ -71,6 +64,33 @@ namespace GitHelper_1.Controllers
                 //throwing error message
 
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+        }
+
+        [HttpGet]
+        [ActionName("GetParticularRepoDetails")]
+        //get details of a particular repo (repo name, owner name, repo link, creation date, updation date)
+        public ParticularRepoDetailsModel GetParticularRepoDetails(string ownerName, string repoName)
+        {
+            try
+            {
+                AuthenticationData authData = GetAuthCookieDetails();
+                GitHubApiService gitHubApiService = GitHubApiService.getInstance(authData.userName, authData.userToken);
+                ParticularRepoDetailsModel particularRepoDetails = gitHubApiService.GetParticularRepoDetails(ownerName, repoName);
+                particularRepoDetails.createdAt = DateFormatter.ConvertToUserPref(particularRepoDetails.createdAt);
+                particularRepoDetails.updatedAt = DateFormatter.ConvertToUserPref(particularRepoDetails.updatedAt);
+
+                return particularRepoDetails;
+            }
+            catch (HttpResponseException ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+            catch (Exception ex)
+            {
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
         }
@@ -135,53 +155,10 @@ namespace GitHelper_1.Controllers
                 throw new HttpResponseException(resp);
             }
         }
-
-
-        //[HttpGet]
-        //[ActionName("GetCommitGraphData")]
-        ////not needed
-        ////get number of commits made on each date of the given month and year for the repo
-        //public List<Dictionary<string, int>> GetCommitGraphData(string ownerName, string repoName, string month, string year)
-        //{
-        //    string userName = "";
-        //    string token = "";
-
-        //    List<Dictionary<string, int>> result = new List<Dictionary<string, int>>();
-
-        //    //dictionary to store the daywise commit counts
-        //    Dictionary<int, int> dayCount = GetDayCount(month, year);
-
-        //    //fetch commits of the repo
-        //    List<CommitDetailsModel> commitsList = GitHubApiService.getInstance(userName, token).GetCommitDetails(ownerName, repoName);
-        //    foreach (CommitDetailsModel commit in commitsList)
-        //    {
-        //        Dictionary<string, string> monthYear = new Dictionary<string, string>();
-
-        //        //DateTime commitDate = new DateFormatter().ConvertUTCtoIST(commit.DateStr);
-        //        //string commitMonth = commitDate.ToString("MMMM").ToLower();
-        //        //string commitYear = commitDate.ToString("yyyy");
-
-        //        //if (commitMonth.Equals(month.ToLower()) && commitYear.Equals(year))
-        //        //{
-        //        //    string date = commitDate.ToString("d");
-        //        //    int day = int.Parse(date);
-        //        //    dayCount[day] += 1;
-        //        //}
-        //    }
-
-        //    foreach (KeyValuePair<int, int> entry in dayCount)
-        //    {
-        //        Dictionary<string,int> commitCount = new Dictionary<string, int>();
-        //        commitCount.Add("commits",entry.Value);
-        //        commitCount.Add("day", entry.Key);
-        //        result.Add(commitCount);
-        //    }
-
-        //    return result;
-        //}
-
+        
         [HttpGet]
         [ActionName("GetMonthYearList")]
+        //get month-year list for a particular repository
         public List<Dictionary<string, string>> GetMonthYearList(string ownerName, string repoName) //List<Dictionary<string, string>>
         {
             try
@@ -190,7 +167,6 @@ namespace GitHelper_1.Controllers
 
                 AuthenticationData authData = GetAuthCookieDetails();
 
-                //fetch commits of the repo
                 DateTimeOffset localRepoCreatingDate = DateFormatter.ConvertToUserPref(GitHubApiService.getInstance(authData.userName, authData.userToken).GetRepositoryCreationDate(ownerName, repoName));
 
                 DateTimeOffset localRepoCreationMonth = DateFormatter.CreateUserPrefDateTimeOffset(new DateTime(localRepoCreatingDate.Year, localRepoCreatingDate.Month, 1));
@@ -226,6 +202,7 @@ namespace GitHelper_1.Controllers
 
         [HttpGet]
         [ActionName("GetDateCount")]
+        //returns number of commits done per date of a gaiven month and year
         public List<Dictionary<string, int>> GetDateCount(string ownerName, string repoName, string month, string year) //List<Dictionary<string, int>>
         {
             try
@@ -255,10 +232,10 @@ namespace GitHelper_1.Controllers
 
                 for (int i = 0; i < numCommits.Length; i++)
                 {
-                    Dictionary<string, int> commitperDay = new Dictionary<string, int>();
-                    commitperDay.Add("day", i + 1);
-                    commitperDay.Add("commits", numCommits[i]);
-                    result.Add(commitperDay);
+                    Dictionary<string, int> commitPerDay = new Dictionary<string, int>();
+                    commitPerDay.Add("day", i + 1);
+                    commitPerDay.Add("commits", numCommits[i]);
+                    result.Add(commitPerDay);
                 }
 
                 return result;
@@ -275,28 +252,9 @@ namespace GitHelper_1.Controllers
             }
         }
 
-
-        //Detele this (not required)
-        //[HttpGet]
-        //[ActionName("GetReposInfo")]
-        //public List<string> GetReposInfo(string ownerName, string repoName)
-        //{
-        //    string userName = "";
-        //    string token = "";
-
-        //    //int numberOfContributors = GitHubApiService.getInstance(userName,token).getNumberOfContributors(ownerName, repoName);
-        //    //List<LanguageDetails> languagesUsed = GitHubApiService.getInstance(userName, token).GetRepositoryLanguages(ownerName, repoName);
-
-        //    List<string> result = new List<string>();
-
-        //    //result.Add(numberOfContributors.ToString());
-        //    //result.Add(languagesUsed);
-
-        //    return result;
-        //}
-
         [HttpGet]
         [ActionName("GetRepoLanguages")]
+        //get all the languages used in a particular repository
         public List<LanguageDetails> GetRepoLanguages(string ownerName, string repoName)
         {
             try
@@ -318,42 +276,5 @@ namespace GitHelper_1.Controllers
                 throw new HttpResponseException(resp);
             }
         }
-
-
-
-        //public Dictionary<int, int> GetDayCount(string month, string year)
-        //{
-        //    Dictionary<int, int> dayCount = new Dictionary<int, int>();
-        //    int numberOfDays = 0;
-        //    month = month.ToLower();
-        //    int y = int.Parse(year);
-
-        //    if (month.Equals("february"))
-        //    {
-        //        if (((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0))
-        //            numberOfDays = 29;
-        //        else
-        //            numberOfDays = 28;
-        //    }
-        //    else
-        //    {
-        //        //months with 30 days
-        //        if (month.Equals("april") || month.Equals("june") ||
-        //                month.Equals("september") || month.Equals("november"))
-        //        {
-        //            numberOfDays = 30;
-        //        }
-        //        //months with 31 days
-        //        else
-        //        {
-        //            numberOfDays = 31;
-        //        }
-        //    }
-        //    for (int i = 1; i <= numberOfDays; i++)
-        //    {
-        //        dayCount[i] = 0;
-        //    }
-        //    return dayCount;
-        //}
     }
 }

@@ -1,9 +1,6 @@
 ﻿using GitHelperDAL.Model;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GitHelperDAL.Services
 {
@@ -14,18 +11,18 @@ namespace GitHelperDAL.Services
         public abstract string GetAvtarUrl();
 
         public abstract List<RepoDetailsModel> GetRepoDetails();
+        public abstract ParticularRepoDetailsModel GetParticularRepoDetails(string owner, string repositoryName);
+        public abstract DateTimeOffset GetRepositoryCreationDate(string owner, string repositoryName);
 
-        public abstract DateTimeOffset GetRepositoryCreationDate(string Owner, string RepositoryName);
+        public abstract List<LanguageDetails> GetRepositoryLanguages(string owner, string repositoryName);
 
-        public abstract List<LanguageDetails> GetRepositoryLanguages(string Owner, string RepositoryName);
+        public abstract List<CommitDetailsModel> GetCommitDetails(string owner, string repositoryName);
 
-        public abstract List<CommitDetailsModel> GetCommitDetails(string Owner, string RepositoryName); // Not implementing pagination
+        public abstract int GetTotalNoOfCommits(string owner, string repositoryName);
 
-        public abstract int GetTotalNoOfCommits(string Owner, string RepositoryName); //Check use (not the full version)
+        public abstract List<CommitDetailsModel> GetCommitsForInterval(string owner, string repositoryName, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp);
 
-        public abstract List<CommitDetailsModel> GetCommitsForInterval(string Owner, string RepositoryName, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp);
-
-        public abstract List<CommitDetailsModel> GetPaginatedCommits(string Owner, string RepositoryName, int pageNumber, int pageSize);
+        public abstract List<CommitDetailsModel> GetPaginatedCommits(string owner, string repositoryName, int pageNumber, int pageSize);
 
 
         //Factory Pattern Implementation
