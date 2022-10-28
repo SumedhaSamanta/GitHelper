@@ -8,8 +8,8 @@ namespace GitHelperDAL.Model
 {
     public class CommitDetailsModel
     {
-        public string AuthorName { get; set; }
-        public string CommitMessage { get; set; }
-        public string DateStr { get; set; }
+        public string commitAuthorName { get; set; }
+        public string commitMessage { get; set; }
+        public DateTimeOffset commitDateTime { get; set; }
     }
 }

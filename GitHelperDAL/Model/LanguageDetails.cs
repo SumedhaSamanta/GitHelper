@@ -8,8 +8,8 @@ namespace GitHelperDAL.Model
 {
     public class LanguageDetails
     {
-        public string Name { get; set; }
+        public string language { get; set; }
 
-        public long NumberOfBytes { get; set; }
+        public long bytesOfCode { get; set; }
     }
 }

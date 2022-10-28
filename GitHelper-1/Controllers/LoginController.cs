@@ -1,26 +1,22 @@
 ﻿using GitHelper_1.Models;
 using GitHelper_1.Utilities;
-using Newtonsoft.Json;
+using GitHelperDAL.Services;
 using Newtonsoft.Json.Linq;
-using Swashbuckle.Swagger;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Web;
 using System.Web.Http;
-using System.Web.Mvc;
+using System.Web.Security;
 using ActionNameAttribute = System.Web.Http.ActionNameAttribute;
 using HttpGetAttribute = System.Web.Http.HttpGetAttribute;
 using HttpPostAttribute = System.Web.Http.HttpPostAttribute;
-using RouteAttribute = System.Web.Http.RouteAttribute;
 
 namespace GitHelper_1.Controllers
 {
     public class LoginController : ApiController
     {
-        CookieManager cookieManager = new CookieManager();
 
         [HttpPost]
         public HttpResponseMessage AuthenticateUser([FromBody] JObject data)
@@ -33,52 +29,71 @@ namespace GitHelper_1.Controllers
             if (isValidCredential)
             {
                 //check aunthenticity of the credentials
-                bool isValidUser = false; //AuthenticateTokenAndGetClient(username, token);
+                GitHubApiService gitApiService = GitHubApiService.getInstance(username, token);
+                bool isValidUser = gitApiService.AuthenticateUser();
 
                 if (isValidUser)
                 {
-                    //create cookie
-                    //cookieManager.CreateCookie(username, token,Response);
-                    /*System.Web.HttpCookie userInfo = new System.Web.HttpCookie("userInfo");
-                    userInfo["username"] = username;
-                    userInfo["token"] = token;
-                    userInfo.Expires.Add(new TimeSpan(0, 1, 0));
-                    Response.Cookies.Add(userInfo);*/
 
-                    return Request.CreateResponse(HttpStatusCode.OK, 
-                        JsonConvert.SerializeObject(new Dictionary<string, string>()
-                                                { {"status","Success"},
-                                                    {"message","Authentication Successful"} }));
+                    //return auth cookie and response for success
+                    HttpResponseMessage responseMsg = Request.CreateResponse(HttpStatusCode.OK,
+                        new StatusDetailsModel { status = "Success", message = "Authentication Successful"});
+
+                    string ticket = AuthenticationTicketUtil.createAuthenticationTicket(username, token);
+                    var cookie = new CookieHeaderValue(FormsAuthentication.FormsCookieName, ticket);
+                    cookie.Expires = DateTimeOffset.Now.AddDays(1);
+                    cookie.Domain = Request.RequestUri.Host;
+                    cookie.Path = "/";
+                    responseMsg.Headers.AddCookies(new CookieHeaderValue[] { cookie });
+
+
+                    return responseMsg;
                 }
                 else
                 {
                     //return appropriate message for failure
+                    
                     return Request.CreateResponse(HttpStatusCode.OK,
-                        JsonConvert.SerializeObject(new Dictionary<string, string>()
-                                                { {"status","Failure"},
-                                                    {"message","Bad Credentials"} }));
+                        new StatusDetailsModel { status = "Failure", message = "Bad Credentials" });
 
                 }
             }
             //return appropriate message for failure
-            return Request.CreateResponse(HttpStatusCode.OK, 
-                JsonConvert.SerializeObject(new Dictionary<string, string>()
-                        { {"status","Failure"},
-                             {"message","Wrong format for username or personal access token"} }));
+            return Request.CreateResponse(HttpStatusCode.OK,
+                new StatusDetailsModel { status = "Failure", message = "Wrong format for username or personal access token" });
         }
 
 
         [HttpGet]
         [ActionName("Logout")]
-        public string Logout()
+        public HttpResponseMessage Logout()
         {
             //erase cookie data of current user
-
+            FormsAuthentication.SignOut();
             //return successful logout confirmation
-            return "You have successfully logged out!";
+            return Request.CreateResponse(HttpStatusCode.OK,
+                new StatusDetailsModel { status = "Success", message = "Logged Out Successfully" });
         }
 
-        public bool IsValidCredentials(String username, String token)
+
+        [HttpGet]
+        [ActionName("IsAuthenticated")]
+        public HttpResponseMessage IsAuthenticated()
+        {
+            if (HttpContext.Current.User.Identity.IsAuthenticated)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK,
+                new StatusDetailsModel { status = "Authenticated", message = "User is Authenticated" });
+            }
+            else
+            {
+                return Request.CreateResponse(HttpStatusCode.OK,
+                new StatusDetailsModel { status = "Unauthenticated", message = "User is Not Authenticated" });
+            }
+            
+        }
+
+        private bool IsValidCredentials(String username, String token)
         {
             //username and token should not be empty
             if (String.IsNullOrEmpty(username) || String.IsNullOrEmpty(token))

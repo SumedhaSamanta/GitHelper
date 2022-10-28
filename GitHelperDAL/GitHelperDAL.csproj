@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Model\CommitDetailsModel.cs" />
     <Compile Include="Model\LanguageDetails.cs" />
+    <Compile Include="Model\ParticularRepoDetailsModel.cs" />
     <Compile Include="Model\RepoDetailsModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\GitHubApiService.cs" />
