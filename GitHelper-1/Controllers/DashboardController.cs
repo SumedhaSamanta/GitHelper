@@ -18,6 +18,9 @@ namespace GitHelper_1.Controllers
     [Authorize]
     public class DashboardController : ApiController
     {
+        //private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly log4net.ILog log = LogHelper.GetLogger();
+
         //read data (username and token) from authentication cookie
         private AuthenticationData GetAuthCookieDetails()
         {
@@ -26,12 +29,13 @@ namespace GitHelper_1.Controllers
 
             if (cookie != null)
             {
+                log.Info("Reading data from authentication cookie successful");
                 string ticket = cookie[FormsAuthentication.FormsCookieName].Value;
                 authData = AuthenticationTicketUtil.getAuthenticationDataFromTicket(ticket);
-
             }
             else
             {
+                log.Error("Reading data from authentication cookie failed");
                 //throwing error message
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
@@ -53,8 +57,9 @@ namespace GitHelper_1.Controllers
                 GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
                 //get repo-names, repo - owner name and user - avatar - url
                 List<RepoDetailsModel> repoList = client.GetRepoDetails();
+                log.Info("Fetching list of repositories of the user successful");
                 string avatarURL = client.GetAvtarUrl();
-
+                log.Info("Fetching avatar of the user successful");
                 UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
 
                 return result;
@@ -62,7 +67,7 @@ namespace GitHelper_1.Controllers
             catch
             {
                 //throwing error message
-
+                log.Error("Fetching details of the user failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
