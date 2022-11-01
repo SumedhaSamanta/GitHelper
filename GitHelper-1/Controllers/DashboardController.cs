@@ -215,7 +215,7 @@ namespace GitHelper_1.Controllers
 
                 int numberOfDays = DateTime.DaysInMonth(localFirstDateOfMonth.Year, localFirstDateOfMonth.Month);
 
-                DateTimeOffset localLastDateofMonth = DateFormatter.CreateUserPrefDateTimeOffset(new DateTime(localFirstDateOfMonth.Year, localFirstDateOfMonth.Month, numberOfDays));
+                DateTimeOffset localLastDateofMonth = localFirstDateOfMonth.AddMonths(1).Subtract(TimeSpan.FromTicks(1));
 
 
                 //call function to get commit list for specified dates
