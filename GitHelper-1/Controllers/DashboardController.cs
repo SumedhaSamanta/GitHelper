@@ -85,16 +85,19 @@ namespace GitHelper_1.Controllers
                 ParticularRepoDetailsModel particularRepoDetails = gitHubApiService.GetParticularRepoDetails(ownerName, repoName);
                 particularRepoDetails.createdAt = DateFormatter.ConvertToUserPref(particularRepoDetails.createdAt);
                 particularRepoDetails.updatedAt = DateFormatter.ConvertToUserPref(particularRepoDetails.updatedAt);
+                log.Info("Fetching details of particular repositories of the user successful");
 
                 return particularRepoDetails;
             }
             catch (HttpResponseException ex)
             {
+                log.Error("Reading data from authentication cookie failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
+                log.Error("Fetching details of particular repositories of the user failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -116,16 +119,19 @@ namespace GitHelper_1.Controllers
                 {
                     commit.commitDateTime = DateFormatter.ConvertToUserPref(commit.commitDateTime);
                 }
+                log.Info("Fetching details of commits details of particular repository of the user successful");
 
                 return commitsList;
             }
             catch(HttpResponseException ex)
             {
+                log.Error("Reading data from authentication cookie failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch(Exception ex)
             {
+                log.Error("Fetching details of commits details of particular repository of the user successful");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -146,16 +152,19 @@ namespace GitHelper_1.Controllers
                 {
                     commit.commitDateTime = DateFormatter.ConvertToUserPref(commit.commitDateTime);
                 }
+                log.Info("Fetching paginated details of commits of particular  repositories of the user successful");
 
                 return commitsList;
             }
             catch (HttpResponseException ex)
             {
+                log.Error("Reading data from authentication cookie failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
+                log.Error("Fetching paginated details of commits of particular  repositories of the user failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -190,16 +199,19 @@ namespace GitHelper_1.Controllers
 
                     iterator = iterator.AddMonths(-1);
                 }
+                log.Info("Fetching month-year list of particular repositories of the user successful");
 
                 return monthYearList;
             }
             catch (HttpResponseException ex)
             {
+                log.Error("Reading data from authentication cookie failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
+                log.Error("Fetching month-year list of particular repositories of the user failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -242,16 +254,19 @@ namespace GitHelper_1.Controllers
                     commitPerDay.Add("commits", numCommits[i]);
                     result.Add(commitPerDay);
                 }
+                log.Info("Fetching details of number of commits of particular repositories on particular date of the user successful");
 
                 return result;
             }
             catch (HttpResponseException ex)
             {
+                log.Error("Reading data from authentication cookie failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
+                log.Error("Fetching details of number of commits of particular repositories on particular date of the user failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -267,16 +282,21 @@ namespace GitHelper_1.Controllers
                 AuthenticationData authData = GetAuthCookieDetails();
 
                 List<LanguageDetails> languagesUsed = GitHubApiService.getInstance(authData.userName, authData.userToken).GetRepositoryLanguages(ownerName, repoName);
+                log.Info("Fetching list of languages used in particular repositories of the user successful");
 
                 return languagesUsed;
             }
             catch (HttpResponseException ex)
             {
+
+                log.Error("Reading data from authentication cookie failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
+
+                log.Error("Fetching list of languages used in particular repositories of the user failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
