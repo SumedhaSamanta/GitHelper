@@ -34,7 +34,6 @@ namespace GitHelperDAL
 
                 var task = GetUser(clientDetail);
                 User user = task.Result;
-                var repositories = clientDetail.Repository.GetAllForCurrent().Result;
                 if (user.Login != this.userName)
                 {
                     return false;
@@ -120,9 +119,8 @@ namespace GitHelperDAL
         {
             List<CommitDetailsModel> commitMessages = new List<CommitDetailsModel>();
             var commits = clientDetail.Repository.Commit.GetAll(owner, repositoryName).Result;
-            foreach (var cm in commits)
+            foreach (var commit in commits)
             {
-                var commit = clientDetail.Repository.Commit.Get(owner, repositoryName, cm.Sha).Result;
                 commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date }) ;
             }
             return commitMessages;
@@ -147,10 +145,9 @@ namespace GitHelperDAL
             List<CommitDetailsModel> commitMessages = new List<CommitDetailsModel>();
             var request = new CommitRequest { Since = startTimeStamp, Until = endTimeStamp };
             var commitList = clientDetail.Repository.Commit.GetAll(owner, repositoryName, request).Result;
-            foreach (var cm in commitList)
+            foreach (var commit in commitList)
             {
-                var comit = clientDetail.Repository.Commit.Get(owner, repositoryName, cm.Sha).Result;
-                commitMessages.Add(new CommitDetailsModel { commitAuthorName = comit.Commit.Author.Name, commitMessage = comit.Commit.Message, commitDateTime = comit.Commit.Committer.Date });
+                commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date });
             }
             return commitMessages;
         }
@@ -167,10 +164,9 @@ namespace GitHelperDAL
                 PageCount = 1
             };
             var commitList = clientDetail.Repository.Commit.GetAll(owner, repositoryName, request).Result;
-            foreach (var cm in commitList)
+            foreach (var commit in commitList)
             {
-                var comit = clientDetail.Repository.Commit.Get(owner, repositoryName, cm.Sha).Result;
-                commitMessages.Add(new CommitDetailsModel { commitAuthorName = comit.Commit.Author.Name, commitMessage = comit.Commit.Message, commitDateTime = comit.Commit.Committer.Date });
+                commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date });
             }
             return commitMessages;
         }
