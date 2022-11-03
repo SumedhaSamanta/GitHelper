@@ -12,10 +12,11 @@ using GitHelperDAL.Model;
 using GitHelperDAL.Services;
 using System.Web.Security;
 using System.Net.Http.Headers;
+using GitHelper_1.CustomException;
 
 namespace GitHelper_1.Controllers
 {
-    [Authorize]
+   // [Authorize]
     public class DashboardController : ApiController
     {
         //private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -29,16 +30,16 @@ namespace GitHelper_1.Controllers
 
             if (cookie != null)
             {
-                log.Info("Reading data from authentication cookie successful");
+                log.Info("Reading data from authentication cookie successful.");
                 string ticket = cookie[FormsAuthentication.FormsCookieName].Value;
                 authData = AuthenticationTicketUtil.getAuthenticationDataFromTicket(ticket);
             }
             else
             {
-                log.Error("Reading data from authentication cookie failed");
+                log.Error("Authentication cookie data not found.");
                 //throwing error message
-                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
-                throw new HttpResponseException(resp);
+                // var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new NullAuthCookieException("Authentication cookie not found");
             }
 
             return authData;
@@ -53,22 +54,28 @@ namespace GitHelper_1.Controllers
             try
             {
                 AuthenticationData authData = GetAuthCookieDetails();
-
+                log.Info($"Fetching user details for user: {authData.userName}");
                 GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
                 //get repo-names, repo - owner name and user - avatar - url
                 List<RepoDetailsModel> repoList = client.GetRepoDetails();
-                log.Info("Fetching list of repositories of the user successful");
                 string avatarURL = client.GetAvtarUrl();
-                log.Info("Fetching avatar of the user successful");
                 UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
-
+                log.Info("Fetching successful.");
                 return result;
             }
-            catch
+            catch (NullAuthCookieException ex)
             {
-                //throwing error message
-                log.Error("Fetching details of the user failed");
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+            catch (Exception ex)
+            {
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+                
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
         }
@@ -81,23 +88,27 @@ namespace GitHelper_1.Controllers
             try
             {
                 AuthenticationData authData = GetAuthCookieDetails();
+                log.Info($"Fetching details of repository [name: {repoName} , owner: {ownerName}] for user :{authData.userName}");
+
                 GitHubApiService gitHubApiService = GitHubApiService.getInstance(authData.userName, authData.userToken);
                 ParticularRepoDetailsModel particularRepoDetails = gitHubApiService.GetParticularRepoDetails(ownerName, repoName);
                 particularRepoDetails.createdAt = DateFormatter.ConvertToUserPref(particularRepoDetails.createdAt);
                 particularRepoDetails.updatedAt = DateFormatter.ConvertToUserPref(particularRepoDetails.updatedAt);
-                log.Info("Fetching details of particular repositories of the user successful");
-
+                log.Info("Fetching successful.");
                 return particularRepoDetails;
             }
-            catch (HttpResponseException ex)
+            catch (NullAuthCookieException ex)
             {
-                log.Error("Reading data from authentication cookie failed");
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
-                log.Error("Fetching details of particular repositories of the user failed");
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -112,6 +123,7 @@ namespace GitHelper_1.Controllers
             try
             {
                 AuthenticationData authData = GetAuthCookieDetails();
+                log.Info($"Fetching commit details of repository [name: {repoName} , owner: {ownerName}] for user {authData.userName} .");
                 GitHubApiService gitHubApiService = GitHubApiService.getInstance(authData.userName, authData.userToken);
                 List<CommitDetailsModel> commitsList = gitHubApiService.GetCommitDetails(ownerName, repoName);
 
@@ -119,19 +131,21 @@ namespace GitHelper_1.Controllers
                 {
                     commit.commitDateTime = DateFormatter.ConvertToUserPref(commit.commitDateTime);
                 }
-                log.Info("Fetching details of commits details of particular repository of the user successful");
-
+                log.Info("Fetching successful.");
                 return commitsList;
             }
-            catch(HttpResponseException ex)
+            catch (NullAuthCookieException ex)
             {
-                log.Error("Reading data from authentication cookie failed");
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                log.Error("Fetching details of commits details of particular repository of the user successful");
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -146,25 +160,27 @@ namespace GitHelper_1.Controllers
             try
             {
                 AuthenticationData authData = GetAuthCookieDetails();
-
+                log.Info($"Fetching paginated commit details [pageNumber: {pageNumber}, pageSize: {pageSize}] of repository [name: {repoName} , owner: {ownerName}] for user :{authData.userName}");
                 List<CommitDetailsModel> commitsList = GitHubApiService.getInstance(authData.userName, authData.userToken).GetPaginatedCommits(ownerName, repoName, pageNumber, pageSize);
                 foreach (CommitDetailsModel commit in commitsList)
                 {
                     commit.commitDateTime = DateFormatter.ConvertToUserPref(commit.commitDateTime);
                 }
-                log.Info("Fetching paginated details of commits of particular  repositories of the user successful");
-
+                log.Info("Fetching successful.");
                 return commitsList;
             }
-            catch (HttpResponseException ex)
+            catch (NullAuthCookieException ex)
             {
-                log.Error("Reading data from authentication cookie failed");
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
-                log.Error("Fetching paginated details of commits of particular  repositories of the user failed");
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -175,11 +191,14 @@ namespace GitHelper_1.Controllers
         //get month-year list for a particular repository
         public List<Dictionary<string, string>> GetMonthYearList(string ownerName, string repoName) //List<Dictionary<string, string>>
         {
+            
             try
             {
+                AuthenticationData authData = GetAuthCookieDetails();
+                log.Info($"Fetching month list of repository [name: {repoName} , owner: {ownerName}] for user :{authData.userName}");
                 List<Dictionary<string, string>> result = new List<Dictionary<string, string>>();
 
-                AuthenticationData authData = GetAuthCookieDetails();
+               
 
                 DateTimeOffset localRepoCreatingDate = DateFormatter.ConvertToUserPref(GitHubApiService.getInstance(authData.userName, authData.userToken).GetRepositoryCreationDate(ownerName, repoName));
 
@@ -199,19 +218,21 @@ namespace GitHelper_1.Controllers
 
                     iterator = iterator.AddMonths(-1);
                 }
-                log.Info("Fetching month-year list of particular repositories of the user successful");
-
+                log.Info("Fetching successful.");
                 return monthYearList;
             }
-            catch (HttpResponseException ex)
+            catch (NullAuthCookieException ex)
             {
-                log.Error("Reading data from authentication cookie failed");
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
-                log.Error("Fetching month-year list of particular repositories of the user failed");
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -224,9 +245,11 @@ namespace GitHelper_1.Controllers
         {
             try
             {
+                AuthenticationData authData = GetAuthCookieDetails();
+                log.Info($"Fetching contribution details for the month of {month}, {year} of repository [name: {repoName} , owner: {ownerName}] for user :{authData.userName}");
                 List<Dictionary<string, int>> result = new List<Dictionary<string, int>>();
 
-                AuthenticationData authData = GetAuthCookieDetails();
+                
 
                 DateTimeOffset localFirstDateOfMonth = DateFormatter.CreateUserPrefDateTimeOffset(DateTime.ParseExact(month + " " + year, "MMMM yyyy", null));
 
@@ -254,19 +277,21 @@ namespace GitHelper_1.Controllers
                     commitPerDay.Add("commits", numCommits[i]);
                     result.Add(commitPerDay);
                 }
-                log.Info("Fetching details of number of commits of particular repositories on particular date of the user successful");
-
+                log.Info("Fetching completed successfully.");
                 return result;
             }
-            catch (HttpResponseException ex)
+            catch (NullAuthCookieException ex)
             {
-                log.Error("Reading data from authentication cookie failed");
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
-                log.Error("Fetching details of number of commits of particular repositories on particular date of the user failed");
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
@@ -279,24 +304,26 @@ namespace GitHelper_1.Controllers
         {
             try
             {
+
                 AuthenticationData authData = GetAuthCookieDetails();
+                log.Info($"Fetching language details of repository [name: {repoName} , owner: {ownerName}] for user :{authData.userName}");
 
                 List<LanguageDetails> languagesUsed = GitHubApiService.getInstance(authData.userName, authData.userToken).GetRepositoryLanguages(ownerName, repoName);
-                log.Info("Fetching list of languages used in particular repositories of the user successful");
-
+                log.Info("Fetching successful.");
                 return languagesUsed;
             }
-            catch (HttpResponseException ex)
+            catch (NullAuthCookieException ex)
             {
-
-                log.Error("Reading data from authentication cookie failed");
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
                 throw new HttpResponseException(resp);
             }
             catch (Exception ex)
             {
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
 
-                log.Error("Fetching list of languages used in particular repositories of the user failed");
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
