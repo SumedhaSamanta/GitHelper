@@ -17,6 +17,7 @@ namespace GitHelper_1.Controllers
 {
     public class LoginController : ApiController
     {
+        private static readonly log4net.ILog log = LogHelper.GetLogger();
 
         [HttpPost]
         public HttpResponseMessage AuthenticateUser([FromBody] JObject data)
@@ -45,19 +46,20 @@ namespace GitHelper_1.Controllers
                     cookie.Domain = Request.RequestUri.Host;
                     cookie.Path = "/";
                     responseMsg.Headers.AddCookies(new CookieHeaderValue[] { cookie });
-
+                    log.Info($"User is authenticated. Created authentication cookie for user: {username}");
 
                     return responseMsg;
                 }
                 else
                 {
                     //return appropriate message for failure
-                    
+                    log.Info($"Invalid username/token provided");
                     return Request.CreateResponse(HttpStatusCode.OK,
                         new StatusDetailsModel { status = "Failure", message = "Bad Credentials" });
 
                 }
             }
+            log.Info($"Invalid username/token format provided");
             //return appropriate message for failure
             return Request.CreateResponse(HttpStatusCode.OK,
                 new StatusDetailsModel { status = "Failure", message = "Wrong format for username or personal access token" });
@@ -69,6 +71,7 @@ namespace GitHelper_1.Controllers
         public HttpResponseMessage Logout()
         {
             //erase cookie data of current user
+            log.Info($"User [{HttpContext.Current.User.Identity.Name}] logged out succesfully. Clearing authentication cookie");
             FormsAuthentication.SignOut();
             //return successful logout confirmation
             return Request.CreateResponse(HttpStatusCode.OK,
@@ -82,11 +85,13 @@ namespace GitHelper_1.Controllers
         {
             if (HttpContext.Current.User.Identity.IsAuthenticated)
             {
+                log.Info($"Authentication cookie found. User is authenticated as {HttpContext.Current.User.Identity.Name}");
                 return Request.CreateResponse(HttpStatusCode.OK,
                 new StatusDetailsModel { status = "Authenticated", message = "User is Authenticated" });
             }
             else
             {
+                log.Info($"Authentication cookie not found. User is not authenticated.");
                 return Request.CreateResponse(HttpStatusCode.OK,
                 new StatusDetailsModel { status = "Unauthenticated", message = "User is Not Authenticated" });
             }
