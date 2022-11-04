@@ -16,7 +16,7 @@ using GitHelper_1.CustomException;
 
 namespace GitHelper_1.Controllers
 {
-   // [Authorize]
+    [Authorize]
     public class DashboardController : ApiController
     {
         //private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
