@@ -86,7 +86,7 @@ namespace GitHelperAPI.Controllers
             }
             catch (NullReferenceException)
             {
-                log.Info("Username/token not provided");
+                log.Error("Username/token not provided");
                 //return appropriate message for failure
                 return Request.CreateResponse(HttpStatusCode.OK,
                     new StatusDetailsModel { status = "Failure", message = "Blank username or personal access token" });
