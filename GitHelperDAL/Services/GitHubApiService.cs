@@ -1,4 +1,14 @@
-﻿using GitHelperDAL.Model;
+﻿/* 
+ Created By:        Mehdi Hossain
+ Created Date:      23-10-2022
+ Modified Date:     08-11-2022
+ Purpose:           Abstract service class that is responsible for creating and returning the necessary
+                    implementation subclass to the caller method. This class also acts as the base class
+                    to encapsulate the implementation of sub-classes.
+ Purpose Type:      This class acts as the reference type for creating and using actual git api implementation.
+ Referenced files:  NA
+ */
+using GitHelperDAL.Model;
 using System;
 using System.Collections.Generic;
 
