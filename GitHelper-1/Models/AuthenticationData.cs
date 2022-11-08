@@ -1,4 +1,13 @@
-﻿using System;
+﻿/* 
+ Created By:        Mehdi Hossain
+ Created Date:      25-10-2022
+ Modified Date:     08-11-2022
+ Purpose:           This class is used for encapsulating username and token data.
+ Purpose Type:      This class helps to encapsulate username and token of a user read from authentication cookie
+ Referenced files:  NA 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;

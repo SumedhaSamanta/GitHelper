@@ -1,4 +1,17 @@
-﻿using System;
+﻿/* 
+ Created By:        Sumedha Samanta
+ Created Date:      20-10-2022
+ Modified Date:     08-11-2022
+ Purpose:           This class is accessible to authenticated users only. It defines APIs for dashboard functionalities (fetching user details, repository details, and so on).
+ Purpose Type:      Defines APIs for dashboard functionalities to serve authenticated user requests.
+ Referenced files:  Utilities\AuthenticationTicketUtil.cs,
+                    Utilities\DateFormatter.cs,
+                    Models\AuthenticationData.cs,
+                    Models\UserDetails.cs,
+                    CustomException\NullAuthCookieException.cs
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -19,10 +32,16 @@ namespace GitHelper_1.Controllers
     [Authorize]
     public class DashboardController : ApiController
     {
-        //private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly log4net.ILog log = LogHelper.GetLogger();
 
-        //read data (username and token) from authentication cookie
+
+        /*
+            <summary>
+                responsible for reading username and token from authentication cookie
+            </summary>
+            <param> None </param>
+            <returns>username and token of the user; if not found, throws NullAuthCookieException</returns>
+        */
         private AuthenticationData GetAuthCookieDetails()
         {
             AuthenticationData authData = null;
@@ -37,18 +56,22 @@ namespace GitHelper_1.Controllers
             else
             {
                 log.Error("Authentication cookie data not found.");
-                //throwing error message
-                // var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                //throwing error 
                 throw new NullAuthCookieException("Authentication cookie not found");
             }
 
             return authData;
         }
 
-
+        /*
+           <summary>
+               fetches details of the authorized user for Dashboard UI
+           </summary>
+           <param> None </param>
+           <returns>avatar-url, list of repo names and owner names of the user</returns>
+       */
         [HttpGet]
         [ActionName("GetUserDetails")]
-        //return avatar-url, list of repo names and owner names
         public UserDetails GetUserDetails()
         {
             try
@@ -80,9 +103,18 @@ namespace GitHelper_1.Controllers
             }
         }
 
+        /*
+           <summary>
+               fetches details of a repository requested by the authorized user
+           </summary>
+           <param name="ownerName"> name of the owner of the repository </param>
+           <param name="repoName"> name of the repository </param> 
+           <returns>
+                repo name, owner name, repo link, creation date, updation date of the repository
+           </returns>
+       */
         [HttpGet]
         [ActionName("GetParticularRepoDetails")]
-        //get details of a particular repo (repo name, owner name, repo link, creation date, updation date)
         public ParticularRepoDetailsModel GetParticularRepoDetails(string ownerName, string repoName)
         {
             try
@@ -114,10 +146,18 @@ namespace GitHelper_1.Controllers
             }
         }
 
+        /*
+           <summary>
+               fetches list of commits of a repository requested by the authorized user
+           </summary>
+           <param name="ownerName"> name of the owner of the repository </param>
+           <param name="repoName"> name of the repository </param> 
+           <returns>
+                list of commits with their author name, commit message and commit date for the repository
+           </returns>
+       */
         [HttpGet]
         [ActionName("GetCommits")]
-
-        //get details of the commits (commitAuthorName, commitMessage, commitDate)
         public List<CommitDetailsModel> GetCommits(string ownerName, string repoName)
         {
             try
@@ -151,10 +191,20 @@ namespace GitHelper_1.Controllers
             }
         }
 
+        /*
+           <summary>
+               fetches paginated list of commits of a repository requested by the authorized user
+           </summary>
+           <param name="ownerName"> name of the owner of the repository </param>
+           <param name="repoName"> name of the repository </param> 
+           <param name="pageNumber"> page number </param>
+           <param name="pageSize"> page size</param>
+           <returns>
+                paginated list of commits with their author name, commit message and commit date for the repository
+           </returns>
+       */
         [HttpGet]
         [ActionName("GetPaginatedCommits")]
-
-        //get details of the commits (commitAuthorName, commitMessage, commitDate)
         public List<CommitDetailsModel> GetPaginatedCommits(string ownerName, string repoName, int pageNumber, int pageSize)
         {
             try
@@ -185,11 +235,20 @@ namespace GitHelper_1.Controllers
                 throw new HttpResponseException(resp);
             }
         }
-        
+
+        /*
+           <summary>
+               fetches list of months from the creation date for a repository requested by the authorized user
+           </summary>
+           <param name="ownerName"> name of the owner of the repository </param>
+           <param name="repoName"> name of the repository </param> 
+           <returns>
+               list of months for the requested repository
+           </returns>
+       */
         [HttpGet]
         [ActionName("GetMonthYearList")]
-        //get month-year list for a particular repository
-        public List<Dictionary<string, string>> GetMonthYearList(string ownerName, string repoName) //List<Dictionary<string, string>>
+        public List<Dictionary<string, string>> GetMonthYearList(string ownerName, string repoName)
         {
             
             try
@@ -238,10 +297,21 @@ namespace GitHelper_1.Controllers
             }
         }
 
+        /*
+           <summary>
+               fetches number of commits done on each date of a month of a year for a repository requested by the authorized user
+           </summary>
+           <param name="ownerName"> name of the owner of the repository </param>
+           <param name="repoName"> name of the repository </param> 
+           <param name="month"> month for which number of commits have to be found </param>
+           <param name="year"> year for which number of commits have to be found </param>
+           <returns>
+                number of commits done per date of the given month and year for the requested repository
+           </returns>
+       */
         [HttpGet]
         [ActionName("GetDateCount")]
-        //returns number of commits done per date of a gaiven month and year
-        public List<Dictionary<string, int>> GetDateCount(string ownerName, string repoName, string month, string year) //List<Dictionary<string, int>>
+        public List<Dictionary<string, int>> GetDateCount(string ownerName, string repoName, string month, string year)
         {
             try
             {
@@ -297,9 +367,18 @@ namespace GitHelper_1.Controllers
             }
         }
 
+        /*
+           <summary>
+               fetches names and bytes of code for all the languages used in the repository requested by the authorized user
+           </summary>
+           <param name="ownerName"> name of the owner of the repository </param>
+           <param name="repoName"> name of the repository </param> 
+           <returns>
+                all the languages used in the requested repository
+           </returns>
+       */
         [HttpGet]
-        [ActionName("GetRepoLanguages")]
-        //get all the languages used in a particular repository
+        [ActionName("GetRepoLanguages")] 
         public List<LanguageDetails> GetRepoLanguages(string ownerName, string repoName)
         {
             try
