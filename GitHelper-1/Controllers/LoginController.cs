@@ -40,58 +40,67 @@ namespace GitHelperAPI.Controllers
         [HttpPost]
         public HttpResponseMessage AuthenticateUser([FromBody] JObject data)
         {
-            
-            var username = data["username"].ToString();
-            var token = data["token"].ToString();
-            //check validity of the credentials
-            bool isValidCredential = IsValidCredentials(username, token);
-
-            if (isValidCredential)
+            try
             {
-                //check aunthenticity of the credentials
-                GitHubApiService gitApiService = GitHubApiService.getInstance(username, token);
-                bool isValidUser = gitApiService.AuthenticateUser();
+                var username = data["username"].ToString();
+                var token = data["token"].ToString();
+                //check validity of the credentials
+                bool isValidCredential = IsValidCredentials(username, token);
 
-                if (isValidUser)
+                if (isValidCredential)
                 {
+                    //check aunthenticity of the credentials
+                    GitHubApiService gitApiService = GitHubApiService.getInstance(username, token);
+                    bool isValidUser = gitApiService.AuthenticateUser();
 
-                    //return auth cookie and response for success
-                    HttpResponseMessage responseMsg = Request.CreateResponse(HttpStatusCode.OK,
-                        new StatusDetailsModel { status = "Success", message = "Authentication Successful" });
+                    if (isValidUser)
+                    {
 
-                    string ticket = AuthenticationTicketUtil.createAuthenticationTicket(username, token);
-                    var cookie = new CookieHeaderValue(FormsAuthentication.FormsCookieName, ticket);
-                    cookie.Expires = DateTimeOffset.Now.AddDays(1);
-                    cookie.Domain = Request.RequestUri.Host;
-                    cookie.Path = "/";
-                    responseMsg.Headers.AddCookies(new CookieHeaderValue[] { cookie });
-                    log.Info($"User is authenticated. Created authentication cookie for user: {username}");
+                        //return auth cookie and response for success
+                        HttpResponseMessage responseMsg = Request.CreateResponse(HttpStatusCode.OK,
+                            new StatusDetailsModel { status = "Success", message = "Authentication Successful" });
 
-                    return responseMsg;
+                        string ticket = AuthenticationTicketUtil.createAuthenticationTicket(username, token);
+                        var cookie = new CookieHeaderValue(FormsAuthentication.FormsCookieName, ticket);
+                        cookie.Expires = DateTimeOffset.Now.AddDays(1);
+                        cookie.Domain = Request.RequestUri.Host;
+                        cookie.Path = "/";
+                        responseMsg.Headers.AddCookies(new CookieHeaderValue[] { cookie });
+                        log.Info($"User is authenticated. Created authentication cookie for user: {username}");
+
+                        return responseMsg;
+                    }
+                    else
+                    {
+                        //return appropriate message for failure
+                        log.Info("Invalid username/token provided");
+                        return Request.CreateResponse(HttpStatusCode.OK,
+                            new StatusDetailsModel { status = "Failure", message = "Bad Credentials" });
+
+                    }
                 }
-                else
-                {
-                    //return appropriate message for failure
-                    log.Info("Invalid username/token provided");
-                    return Request.CreateResponse(HttpStatusCode.OK,
-                        new StatusDetailsModel { status = "Failure", message = "Bad Credentials" });
-
-                }
+                log.Info("Invalid username/token format provided");
+                //return appropriate message for failure
+                return Request.CreateResponse(HttpStatusCode.OK,
+                    new StatusDetailsModel { status = "Failure", message = "Wrong format for username or personal access token" });
             }
-            log.Info("Invalid username/token format provided");
-            //return appropriate message for failure
-            return Request.CreateResponse(HttpStatusCode.OK,
-                new StatusDetailsModel { status = "Failure", message = "Wrong format for username or personal access token" });
+            catch (NullReferenceException)
+            {
+                log.Info("Username/token not provided");
+                //return appropriate message for failure
+                return Request.CreateResponse(HttpStatusCode.OK,
+                    new StatusDetailsModel { status = "Failure", message = "Blank username or personal access token" });
+            }
         }
 
-        /*
-            <summary>
-                erases authentication cookie data of current user before logging out
-            </summary>
-            <param> None </param>
-            <returns> apppropriate success message after logout </returns>
-        */
-        [HttpGet]
+            /*
+                <summary>
+                    erases authentication cookie data of current user before logging out
+                </summary>
+                <param> None </param>
+                <returns> apppropriate success message after logout </returns>
+            */
+            [HttpGet]
         [ActionName("Logout")]
         public HttpResponseMessage Logout()
         { 
