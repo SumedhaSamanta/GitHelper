@@ -13,7 +13,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Web;
 
-namespace GitHelper_1
+namespace GitHelperAPI
 {
     public class LogHelper
     {

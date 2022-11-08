@@ -1,17 +1,8 @@
-﻿/* 
- Created By:        Mehdi Hossain
- Created Date:      25-10-2022
- Modified Date:     25-10-2022
- Purpose:           Util to generate and decrypt ticket for login user. This ticket in later stored in cookie for further authorisation.
- Purpose Type:      Utility class for ticket generation and decryption.
- Referenced files:  Models\AuthenticationData.cs 
- */
-
-using GitHelper_1.Models;
+﻿using GitHelperAPI.Models;
 using System;
 using System.Web.Security;
 
-namespace GitHelper_1.Utilities
+namespace GitHelperAPI.Utilities
 {
     public static class AuthenticationTicketUtil
     {

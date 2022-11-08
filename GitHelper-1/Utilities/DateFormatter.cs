@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace GitHelper_1.Utilities
+namespace GitHelperAPI.Utilities
 {
     public static class DateFormatter
     {

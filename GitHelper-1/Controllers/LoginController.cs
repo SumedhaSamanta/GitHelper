@@ -8,8 +8,8 @@
                     Utilities\AuthenticationTicketUtil.cs
  */
 
-using GitHelper_1.Models;
-using GitHelper_1.Utilities;
+using GitHelperAPI.Models;
+using GitHelperAPI.Utilities;
 using GitHelperDAL.Services;
 using Newtonsoft.Json.Linq;
 using System;
@@ -23,7 +23,7 @@ using ActionNameAttribute = System.Web.Http.ActionNameAttribute;
 using HttpGetAttribute = System.Web.Http.HttpGetAttribute;
 using HttpPostAttribute = System.Web.Http.HttpPostAttribute;
 
-namespace GitHelper_1.Controllers
+namespace GitHelperAPI.Controllers
 {
     public class LoginController : ApiController
     {

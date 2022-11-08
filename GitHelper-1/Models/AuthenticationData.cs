@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace GitHelper_1.Models
+namespace GitHelperAPI.Models
 {
     public class AuthenticationData
     {

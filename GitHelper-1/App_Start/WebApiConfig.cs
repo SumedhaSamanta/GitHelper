@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
 
-namespace GitHelper_1
+namespace GitHelperAPI
 {
     public static class WebApiConfig
     {

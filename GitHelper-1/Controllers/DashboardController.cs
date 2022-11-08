@@ -18,16 +18,16 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using HttpGetAttribute = System.Web.Http.HttpGetAttribute;
-using GitHelper_1.Utilities;
+using GitHelperAPI.Utilities;
 using ActionNameAttribute = System.Web.Http.ActionNameAttribute;
-using GitHelper_1.Models;
+using GitHelperAPI.Models;
 using GitHelperDAL.Model;
 using GitHelperDAL.Services;
 using System.Web.Security;
 using System.Net.Http.Headers;
-using GitHelper_1.CustomException;
+using GitHelperAPI.CustomException;
 
-namespace GitHelper_1.Controllers
+namespace GitHelperAPI.Controllers
 {
     [Authorize]
     public class DashboardController : ApiController
