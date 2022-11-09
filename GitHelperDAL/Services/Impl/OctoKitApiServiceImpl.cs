@@ -1,4 +1,13 @@
-﻿using System;
+﻿/* 
+ Created By:        Shubham Jaiswal
+ Created Date:      23-10-2022
+ Modified Date:     08-11-2022
+ Purpose:           This is the implementation class of GitHubApiService class.This class uses Octokit to communicate
+                    with  GitHub Api.
+ Purpose Type:      This class holds the implementation of all the abstract method of the GitHubApiService class.
+ Referenced files:  Model/CommitDetailsModel.cs, Model/LanguageDetails.cs, Model/ParticularRepoDetailsModel.cs, Model/RepoDetailModel.cs
+ */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -26,7 +35,13 @@ namespace GitHelperDAL
             this.userName = userName;
         }
 
-        //It authenticates user with userName and Personal Access Token
+        /*
+            <summary>
+            It authenticates user with userName and Personal Access Token    
+            </summary>
+            <param> NA </param>
+            <returns>Returns true or false</returns>
+        */
         public override bool AuthenticateUser()
         {
             try
@@ -49,8 +64,13 @@ namespace GitHelperDAL
             }
         }
 
-
-        //It gets all the basic information of the user
+        /*
+            <summary>
+            It gets all the basic information of the use    
+            </summary>
+            <param> NA </param>
+            <returns>Returns all the basic details of the authenticated user.</returns>
+        */
         public static Task<User> GetUser(GitHubClient client)
         {
             var user = client.User.Current();
@@ -58,7 +78,13 @@ namespace GitHelperDAL
         }
 
 
-        // It gets the url of the GitHub Avatar
+        /*
+           <summary>
+            It gets the url of the GitHub User Avatar    
+           </summary>
+           <param> NA </param>
+           <returns>Returns the url of the GitHub Avatar of the user.</returns>
+       */
         public override string GetAvtarUrl()
         {
             var task = GetUser(clientDetail);
@@ -68,7 +94,13 @@ namespace GitHelperDAL
 
         }
 
-        //It gets the list of repository name and owner
+        /*
+           <summary>
+            It gets the list of repository name and owner.    
+           </summary>
+           <param> NA </param>
+           <returns>Returns the list of the repository name and owner name.</returns>
+       */
         public override List<RepoDetailsModel> GetRepoDetails()
         {
             var repositories = clientDetail.Repository.GetAllForCurrent().Result;
@@ -81,7 +113,15 @@ namespace GitHelperDAL
 
         }
 
-        // It gets the details of the particular repository
+       
+        /*
+           <summary>
+            It gets the details of the specified repository.    
+           </summary>
+           <param name="owner"> This is name of the owner of the repository. </param>
+           <param name="repositoryName"> This is name of the repository. </param>
+           <returns>Returns all the details of the specified repository.</returns>
+       */
         public override ParticularRepoDetailsModel GetParticularRepoDetails(string owner, string repositoryName)
         {
             var repository = clientDetail.Repository.Get(owner, repositoryName).Result;
@@ -95,7 +135,15 @@ namespace GitHelperDAL
             return particularRepoDetails;
         }
 
-        //It gets the date of repository creation date
+        
+        /*
+          <summary>
+           Returns creation date time of the specified repository.    
+          </summary>
+          <param name="owner"> This is name of the owner of the repository. </param>
+          <param name="repositoryName"> This is name of the repository. </param>
+          <returns>Creation date time.</returns>
+      */
         public override DateTimeOffset GetRepositoryCreationDate(string owner, string repositoryName)
         {
             var repository = clientDetail.Repository.Get(owner, repositoryName).Result;
@@ -103,7 +151,15 @@ namespace GitHelperDAL
             return date;
         }
 
-        //It gets the language of the particular repository
+       
+        /*
+          <summary>
+           It gets the language of specified repository .   
+          </summary>
+          <param name="owner"> This is name of the owner of the repository. </param>
+          <param name="repositoryName"> This is name of the repository. </param>
+          <returns>List of languages.</returns>
+      */
         public override List<LanguageDetails> GetRepositoryLanguages(string owner, string repositoryName)
         {
             List<LanguageDetails> languagesUsed = new List<LanguageDetails>();
@@ -114,7 +170,15 @@ namespace GitHelperDAL
             return languagesUsed;
         }
 
-        //It gets commit author name,commit message, commit date
+        
+        /*
+          <summary>
+           It gets commit author name,commit message, commit date.    
+          </summary>
+          <param name="owner"> This is name of the owner of the repository. </param>
+          <param name="repositoryName"> This is name of the repository. </param>
+          <returns>List of commit details.</returns>
+      */
         public override List<CommitDetailsModel> GetCommitDetails(string owner, string repositoryName)
         {
             List<CommitDetailsModel> commitMessages = new List<CommitDetailsModel>();
@@ -126,19 +190,33 @@ namespace GitHelperDAL
             return commitMessages;
         }
 
-        //It gets total no of commits of a repository
+        
+        /*
+          <summary>
+           It gets total no of commits of specified repository.    
+          </summary>
+          <param name="owner"> This is name of the owner of the repository. </param>
+          <param name="repositoryName"> This is name of the repository. </param>
+          <returns>Number of commits.</returns>
+      */
         public override int GetTotalNoOfCommits(string owner, string repositoryName)
-        {
-            int totalNoOfCommits = 0;
+        { 
             var commits = clientDetail.Repository.Commit.GetAll(owner, repositoryName).Result;
-            foreach (var cm in commits)
-            {
-                totalNoOfCommits++;
-            }
-            return totalNoOfCommits;
+            
+            return commits.Count;
         }
 
-        //It gets all the commits made within a time interval for a given repository
+        
+        /*
+          <summary>
+           It gets all the commits made within a time interval for a given repository.    
+          </summary>
+          <param name="owner"> This is name of the owner of the repository. </param>
+          <param name="repositoryName"> This is name of the repository. </param>
+          <param name="startTimeStamp"> This is starting date time. </param>
+          <param name="endTimeStamp"> This is the ending date time. </param>
+          <returns>List of commits for the specified time interval.</returns>
+      */
         public override List<CommitDetailsModel> GetCommitsForInterval(string owner, string repositoryName, DateTimeOffset startTimeStamp, DateTimeOffset endTimeStamp)
         {
 
@@ -152,7 +230,17 @@ namespace GitHelperDAL
             return commitMessages;
         }
 
-        //It gets all the commits of a given repository in paginated manner
+
+        /*
+          <summary>
+           Get the specified page of commits for the specified repository. This api requires pageNumber and pageSize to work.    
+          </summary>
+          <param name="owner"> This is name of the owner of the repository. </param>
+          <param name="repositoryName"> This is name of the repository. </param>
+          <param name="pageNumber"> This is page number. </param>
+          <param name="pageSize"> This is the page size. </param>
+          <returns>List of commits.</returns>
+      */
         public override List<CommitDetailsModel> GetPaginatedCommits(string owner, string repositoryName, int pageNumber, int pageSize)
         {
 

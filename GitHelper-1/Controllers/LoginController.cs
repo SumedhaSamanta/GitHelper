@@ -1,4 +1,14 @@
-﻿using GitHelper_1.Models;
+﻿/* 
+ Created By:        Sumedha Samanta
+ Created Date:      20-10-2022
+ Modified Date:     08-11-2022
+ Purpose:           This class is used for logging in, authenticating and logging out user.
+ Purpose Type:      This class returns response whether authentication/logging out is successful or not
+ Referenced files:  Models\StatusDetailsModel.cs, 
+                    Utilities\AuthenticationTicketUtil.cs
+ */
+
+using GitHelper_1.Models;
 using GitHelper_1.Utilities;
 using GitHelperDAL.Services;
 using Newtonsoft.Json.Linq;
@@ -19,14 +29,23 @@ namespace GitHelper_1.Controllers
     {
         private static readonly log4net.ILog log = LogHelper.GetLogger();
 
+        /*
+            <summary>
+                authenticates user before logging in.
+                If authentication is succesful, username and token is stored in authentication cookie.
+            </summary>
+            <param name="data"> body of the POST request containing username and token </param>
+            <returns> returns success message if credentials are valid; else failure message </returns>
+        */
         [HttpPost]
         public HttpResponseMessage AuthenticateUser([FromBody] JObject data)
         {
+            
             var username = data["username"].ToString();
             var token = data["token"].ToString();
             //check validity of the credentials
             bool isValidCredential = IsValidCredentials(username, token);
-            
+
             if (isValidCredential)
             {
                 //check aunthenticity of the credentials
@@ -38,7 +57,7 @@ namespace GitHelper_1.Controllers
 
                     //return auth cookie and response for success
                     HttpResponseMessage responseMsg = Request.CreateResponse(HttpStatusCode.OK,
-                        new StatusDetailsModel { status = "Success", message = "Authentication Successful"});
+                        new StatusDetailsModel { status = "Success", message = "Authentication Successful" });
 
                     string ticket = AuthenticationTicketUtil.createAuthenticationTicket(username, token);
                     var cookie = new CookieHeaderValue(FormsAuthentication.FormsCookieName, ticket);
@@ -53,24 +72,29 @@ namespace GitHelper_1.Controllers
                 else
                 {
                     //return appropriate message for failure
-                    log.Info($"Invalid username/token provided");
+                    log.Info("Invalid username/token provided");
                     return Request.CreateResponse(HttpStatusCode.OK,
                         new StatusDetailsModel { status = "Failure", message = "Bad Credentials" });
 
                 }
             }
-            log.Info($"Invalid username/token format provided");
+            log.Info("Invalid username/token format provided");
             //return appropriate message for failure
             return Request.CreateResponse(HttpStatusCode.OK,
                 new StatusDetailsModel { status = "Failure", message = "Wrong format for username or personal access token" });
         }
 
-
+        /*
+            <summary>
+                erases authentication cookie data of current user before logging out
+            </summary>
+            <param> None </param>
+            <returns> apppropriate success message after logout </returns>
+        */
         [HttpGet]
         [ActionName("Logout")]
         public HttpResponseMessage Logout()
-        {
-            //erase cookie data of current user
+        { 
             log.Info($"User [{HttpContext.Current.User.Identity.Name}] logged out succesfully. Clearing authentication cookie");
             FormsAuthentication.SignOut();
             //return successful logout confirmation
@@ -78,7 +102,13 @@ namespace GitHelper_1.Controllers
                 new StatusDetailsModel { status = "Success", message = "Logged Out Successfully" });
         }
 
-
+        /*
+            <summary>
+                checks if the user is authenticated
+            </summary>
+            <param> None </param>
+            <returns> "authenticated" if user is authenticated; else "not authenticated" </returns>
+        */
         [HttpGet]
         [ActionName("IsAuthenticated")]
         public HttpResponseMessage IsAuthenticated()
@@ -98,6 +128,14 @@ namespace GitHelper_1.Controllers
             
         }
 
+        /*
+            <summary>
+                checks if the credentials provided by user are in proper format or not
+            </summary>
+            <param name="username"> username provided by the user </param>
+            <param name="token"> token provided by the user </param>
+            <returns> true if credentials are in proper format and false otherwise </returns>
+        */
         private bool IsValidCredentials(String username, String token)
         {
             //username and token should not be empty
