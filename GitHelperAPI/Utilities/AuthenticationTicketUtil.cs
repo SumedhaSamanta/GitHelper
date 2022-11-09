@@ -1,4 +1,13 @@
-﻿using GitHelperAPI.Models;
+﻿/* 
+ Created By:        Mehdi Hossain
+ Created Date:      25-10-2022
+ Modified Date:     25-10-2022
+ Purpose:           Util to encrypt credentials to authentication ticket and decrypt ticket to get github token, username
+ Purpose Type:      Util to encrypt credentials to authentication ticket and decrypt ticket to get github token, username
+ Referenced files:  Models/AuthenticationData.cs
+ */
+
+using GitHelperAPI.Models;
 using System;
 using System.Web.Security;
 
