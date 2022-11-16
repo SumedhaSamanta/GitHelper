@@ -1,11 +1,11 @@
 ﻿/* 
  Created By:        Shubham Jaiswal
  Created Date:      23-10-2022
- Modified Date:     08-11-2022
+ Modified Date:     16-11-2022
  Purpose:           This is the implementation class of GitHubApiService class.This class uses Octokit to communicate
                     with  GitHub Api.
  Purpose Type:      This class holds the implementation of all the abstract method of the GitHubApiService class.
- Referenced files:  Model/CommitDetailsModel.cs, Model/LanguageDetails.cs, Model/ParticularRepoDetailsModel.cs, Model/RepoDetailModel.cs
+ Referenced files:  Model/CommitDetailsModel.cs, Model/LanguageDetails.cs, Model/ParticularRepoDetailsModel.cs, Model/RepoDetailModel.cs, Model/RepoInfoModel.cs, Response/UserDetailsResponse.cs
  */
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using GitHelperDAL.Model;
+using GitHelperDAL.Response;
 using GitHelperDAL.Services;
 using Octokit;
 
@@ -93,6 +94,28 @@ namespace GitHelperDAL
             return (user.AvatarUrl);
 
         }
+
+        /*
+           <summary>
+            It gets all the basic details of the user of the GitHub User Avatar    
+           </summary>
+           <param> NA </param>
+           <returns>Returns the user_id, url of the GitHub Avatar and repoList of the user.</returns>
+       */
+        public override UserDetailsResponse GetUserDetails()
+        {
+            var task = GetUser(clientDetail);
+            User user = task.Result;
+            var repositories = clientDetail.Repository.GetAllForCurrent().Result;
+            List<RepoInfoModel> repoList = new List<RepoInfoModel>();
+            foreach (var repository in repositories)
+            {
+                repoList.Add(new RepoInfoModel { repoId = repository.Id, repoName = repository.Name, owner = repository.Owner.Login });
+            }
+            return new UserDetailsResponse { userId = user.Id, userAvatarUrl = user.AvatarUrl, repoList = repoList};
+
+        }
+
 
         /*
            <summary>

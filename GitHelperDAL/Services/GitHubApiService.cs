@@ -1,7 +1,7 @@
 ﻿/* 
  Created By:        Mehdi Hossain
  Created Date:      23-10-2022
- Modified Date:     08-11-2022
+ Modified Date:     16-11-2022
  Purpose:           Abstract service class that is responsible for creating and returning the necessary
                     implementation subclass to the caller method. This class also acts as the base class
                     to encapsulate the implementation of sub-classes.
@@ -9,8 +9,10 @@
  Referenced files:  NA
  */
 using GitHelperDAL.Model;
+using GitHelperDAL.Response;
 using System;
 using System.Collections.Generic;
+
 
 namespace GitHelperDAL.Services
 {
@@ -19,7 +21,7 @@ namespace GitHelperDAL.Services
         public abstract bool AuthenticateUser();
 
         public abstract string GetAvtarUrl();
-
+        public abstract UserDetailsResponse GetUserDetails();
         public abstract List<RepoDetailsModel> GetRepoDetails();
         public abstract ParticularRepoDetailsModel GetParticularRepoDetails(string owner, string repositoryName);
         public abstract DateTimeOffset GetRepositoryCreationDate(string owner, string repositoryName);

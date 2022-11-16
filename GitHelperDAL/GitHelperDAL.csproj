@@ -48,7 +48,9 @@
     <Compile Include="Model\LanguageDetails.cs" />
     <Compile Include="Model\ParticularRepoDetailsModel.cs" />
     <Compile Include="Model\RepoDetailsModel.cs" />
+    <Compile Include="Model\RepoInfoModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Response\UserDetailsResponse.cs" />
     <Compile Include="Services\GitHubApiService.cs" />
     <Compile Include="Services\Impl\OctoKitApiServiceImpl.cs" />
   </ItemGroup>

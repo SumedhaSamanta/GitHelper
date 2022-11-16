@@ -1,7 +1,7 @@
 ﻿/* 
  Created By:        Sumedha Samanta
  Created Date:      20-10-2022
- Modified Date:     08-11-2022
+ Modified Date:     16-11-2022
  Purpose:           This class is accessible to authenticated users only. It defines APIs for dashboard functionalities (fetching user details, repository details, and so on).
  Purpose Type:      Defines APIs for dashboard functionalities to serve authenticated user requests.
  Referenced files:  Utilities\AuthenticationTicketUtil.cs,
@@ -26,6 +26,7 @@ using GitHelperDAL.Services;
 using System.Web.Security;
 using System.Net.Http.Headers;
 using GitHelperAPI.CustomException;
+using GitHelperDAL.Response;
 
 namespace GitHelperAPI.Controllers
 {
@@ -72,7 +73,7 @@ namespace GitHelperAPI.Controllers
        */
         [HttpGet]
         [ActionName("GetUserDetails")]
-        public UserDetails GetUserDetails()
+        public UserDetailsResponse GetUserDetails()
         {
             try
             {
@@ -80,11 +81,29 @@ namespace GitHelperAPI.Controllers
                 log.Info($"Fetching user details for user: {authData.userName}");
                 GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
                 //get repo-names, repo - owner name and user - avatar - url
-                List<RepoDetailsModel> repoList = client.GetRepoDetails();
-                string avatarURL = client.GetAvtarUrl();
-                UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
-                log.Info("Fetching successful.");
-                return result;
+                //List<RepoDetailsModel> repoList = client.GetRepoDetails();
+                //string avatarURL = client.GetAvtarUrl();
+                //UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
+                UserDetailsResponse userDetails = client.GetUserDetails();
+                userDetails.username = authData.userName;
+
+                List<RepoInfoModel> userRepos = userDetails.repoList;
+
+                RepoInfoModel favouriteRepo = userRepos[0];
+                //RepoInfoModel favouriteRepo = DBService.getFavourite(result.userId,result.repoList);
+                foreach (RepoInfoModel repo in userRepos)
+                { 
+                    if(repo.repoId == favouriteRepo.repoId)
+                    {
+                        repo.isFavourite = true;
+                    }
+                    else
+                    {
+                        repo.isFavourite = false;
+                    }
+                }
+
+                return userDetails;
             }
             catch (NullAuthCookieException ex)
             {
