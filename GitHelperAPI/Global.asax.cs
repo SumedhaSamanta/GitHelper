@@ -1,5 +1,7 @@
-﻿using System;
+﻿using GitHelperDAL.Services;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Web;
 using System.Web.Http;
@@ -17,6 +19,10 @@ namespace GitHelperAPI
             GlobalConfiguration.Configure(WebApiConfig.Register);
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+
+            string dataSourceName = ConfigurationManager.AppSettings["dataSourceName"];
+            DbService.setDataSorce(dataSourceName, ConfigurationManager.ConnectionStrings[dataSourceName].ConnectionString);
+           
         }
 
         protected void Application_BeginRequest(Object sender, EventArgs e)

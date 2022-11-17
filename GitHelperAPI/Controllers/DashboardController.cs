@@ -27,6 +27,7 @@ using System.Web.Security;
 using System.Net.Http.Headers;
 using GitHelperAPI.CustomException;
 using GitHelperDAL.Response;
+using System.Configuration;
 
 namespace GitHelperAPI.Controllers
 {
@@ -89,11 +90,12 @@ namespace GitHelperAPI.Controllers
 
                 List<RepoInfoModel> userRepos = userDetails.repoList;
 
-                RepoInfoModel favouriteRepo = userRepos[0];
-                //RepoInfoModel favouriteRepo = DBService.getFavourite(result.userId,result.repoList);
+                //RepoInfoModel favouriteRepo = userRepos[0];
+                DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
+                long favouriteRepoId = dbService.getFavourite(userDetails.userId);
                 foreach (RepoInfoModel repo in userRepos)
                 { 
-                    if(repo.repoId == favouriteRepo.repoId)
+                    if(favouriteRepoId!=-1 && repo.repoId == favouriteRepoId)
                     {
                         repo.isFavourite = true;
                     }
