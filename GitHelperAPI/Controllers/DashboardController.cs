@@ -1,7 +1,7 @@
 ﻿/* 
  Created By:        Sumedha Samanta
  Created Date:      20-10-2022
- Modified Date:     16-11-2022
+ Modified Date:     17-11-2022
  Purpose:           This class is accessible to authenticated users only. It defines APIs for dashboard functionalities (fetching user details, repository details, and so on).
  Purpose Type:      Defines APIs for dashboard functionalities to serve authenticated user requests.
  Referenced files:  Utilities\AuthenticationTicketUtil.cs,
@@ -26,7 +26,7 @@ using GitHelperDAL.Services;
 using System.Web.Security;
 using System.Net.Http.Headers;
 using GitHelperAPI.CustomException;
-using GitHelperDAL.Response;
+using GitHelperAPI.Response;
 using System.Configuration;
 
 namespace GitHelperAPI.Controllers
@@ -85,27 +85,26 @@ namespace GitHelperAPI.Controllers
                 //List<RepoDetailsModel> repoList = client.GetRepoDetails();
                 //string avatarURL = client.GetAvtarUrl();
                 //UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
-                UserDetailsResponse userDetails = client.GetUserDetails();
-                userDetails.username = authData.userName;
-
-                List<RepoInfoModel> userRepos = userDetails.repoList;
+                UserModel user = client.GetUserDetails();
+                List<RepositoryDetailsModel> userRepos = client.GetRepositoryDetails();
 
                 //RepoInfoModel favouriteRepo = userRepos[0];
                 DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
-                long favouriteRepoId = dbService.getFavourite(userDetails.userId);
-                foreach (RepoInfoModel repo in userRepos)
-                { 
+                long favouriteRepoId = dbService.getFavourite(user.userId);
+
+                List<RepoFavouriteCount> repoList = new List<RepoFavouriteCount>();
+                foreach (RepositoryDetailsModel repo in userRepos)
+                {
+                    RepoFavouriteCount repoFavouriteCount = new RepoFavouriteCount { repoId = repo.repoId,
+                                      repoName = repo.repoName, repoOwner = repo.repoOwner, isFavourite = false, count = 0};
                     if(favouriteRepoId!=-1 && repo.repoId == favouriteRepoId)
                     {
-                        repo.isFavourite = true;
+                        repoFavouriteCount.isFavourite = true;
                     }
-                    else
-                    {
-                        repo.isFavourite = false;
-                    }
+                    repoList.Add(repoFavouriteCount);
                 }
-
-                return userDetails;
+                log.Info("Fetching successful.");
+                return new UserDetailsResponse{userId = user.userId, userName = user.userName, userAvatarUrl = user.userAvatarUrl, repoList = repoList};
             }
             catch (NullAuthCookieException ex)
             {
