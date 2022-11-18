@@ -1,7 +1,7 @@
 ﻿/* 
  Created By:        Sumedha Samanta
  Created Date:      17-11-2022
- Modified Date:     17-11-2022
+ Modified Date:     18-11-2022
  Purpose:           This class is responsible for setting a repository as favourite or removing it.
  Purpose Type:      Defines APIs for functionalities to serve requests relating to setting or removing favourite repository.
  Referenced files:  Models\StatusDetailsModel.cs
@@ -16,13 +16,15 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Mvc;
 using HttpGetAttribute = System.Web.Http.HttpGetAttribute;
+using HttpPostAttribute = System.Web.Http.HttpPostAttribute;
 using ActionNameAttribute = System.Web.Http.ActionNameAttribute;
 using System.Configuration;
+using GitHelperDAL.Model;
 
 namespace GitHelperAPI.Controllers
 {
     [System.Web.Http.Authorize]
-    public class FavouriteController : ApiController
+    public class RepoActivityController : ApiController
     {
         private static readonly log4net.ILog log = LogHelper.GetLogger();
 
@@ -83,6 +85,33 @@ namespace GitHelperAPI.Controllers
                 }
             }
             catch (Exception ex)
+            {
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+                return new StatusDetailsModel { status = "Failure", message = "Bad Request" };
+            }
+        }
+
+        /*
+           <summary>
+               updates the visit counts of a repository with respect to a user.
+           </summary>
+           <param name="userId"> userId unique to the user </param>
+           <param name="repoCountList"> list containing repoId and count of visits of the repositories </param>
+           <returns>whether updating repository count is successful or not</returns>
+       */
+        [HttpPost]
+        [ActionName("UpdateRepoCount")]
+        public StatusDetailsModel UpdateRepoCount(long userId, List<RepoCountUpdateModel> repoCountList)
+        {
+            try
+            { 
+                DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
+                log.Info($"Updating repository counts for user");
+                dbService.updateRepoCount(userId, repoCountList);
+                return new StatusDetailsModel{status = "Success", message = "Successful"};
+            }
+            catch(Exception ex)
             {
                 log.Error("Exception occured while processing request.");
                 log.Error($"Stack Trace :\n{ex.ToString()}");

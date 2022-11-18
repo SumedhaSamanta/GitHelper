@@ -47,6 +47,8 @@
     <Compile Include="Model\CommitDetailsModel.cs" />
     <Compile Include="Model\LanguageDetails.cs" />
     <Compile Include="Model\ParticularRepoDetailsModel.cs" />
+    <Compile Include="Model\RepoActivities.cs" />
+    <Compile Include="Model\RepoCountUpdateModel.cs" />
     <Compile Include="Model\RepoDetailsModel.cs" />
     <Compile Include="Model\RepositoryDetailsModel.cs" />
     <Compile Include="Model\UserModel.cs" />

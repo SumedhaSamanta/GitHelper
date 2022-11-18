@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GitHelperDAL.Model;
 
 namespace GitHelperDAL.Services.Impl
 {
@@ -18,7 +19,7 @@ namespace GitHelperDAL.Services.Impl
 
         public override long getFavourite(long userId)
         {
-           
+
             using (SqlConnection con = new SqlConnection(co))
             {
                 con.Open();
@@ -27,7 +28,7 @@ namespace GitHelperDAL.Services.Impl
                 cmd1.CommandType = CommandType.StoredProcedure;
                 cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
 
-                 var result=cmd1.ExecuteScalar();
+                var result = cmd1.ExecuteScalar();
                 if (result is long)
                     return (long)result;
                 else return -1;
@@ -59,6 +60,36 @@ namespace GitHelperDAL.Services.Impl
                 cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
                 cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
                 cmd1.ExecuteNonQuery();
+            }
+        }
+
+        public override void updateRepoCount(long userId, List<RepoCountUpdateModel> repoCountList)
+        {
+            using (SqlConnection con = new SqlConnection(co))
+            {
+                con.Open();
+                DataTable dt = new DataTable();
+                dt.Clear();
+                dt.Columns.Add("RepoId");
+                dt.Columns.Add("Count");
+                foreach (RepoCountUpdateModel repoCount in repoCountList)
+                {
+                    DataRow newRow = dt.NewRow();
+                    newRow["RepoId"] = repoCount.repoId;
+                    newRow["Count"] = repoCount.count;
+                    dt.Rows.Add(newRow);
+                }
+                SqlCommand cmd1 = new SqlCommand("dbo.set_count", con);
+                cmd1.CommandType = CommandType.StoredProcedure;
+                cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+
+                var pList = new SqlParameter("@repoCountList", SqlDbType.Structured);
+                pList.TypeName = "dbo.RepoCountList";
+                pList.Value = dt;
+                cmd1.Parameters.Add(pList);
+
+                cmd1.ExecuteNonQuery();
+
             }
         }
     }
