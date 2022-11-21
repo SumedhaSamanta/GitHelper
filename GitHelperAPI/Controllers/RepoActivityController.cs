@@ -1,7 +1,7 @@
 ﻿/* 
  Created By:        Sumedha Samanta
  Created Date:      17-11-2022
- Modified Date:     18-11-2022
+ Modified Date:     21-11-2022
  Purpose:           This class is responsible for setting a repository as favourite or removing it.
  Purpose Type:      Defines APIs for functionalities to serve requests relating to setting or removing favourite repository.
  Referenced files:  Models\StatusDetailsModel.cs
@@ -105,11 +105,20 @@ namespace GitHelperAPI.Controllers
         public StatusDetailsModel UpdateRepoCount(long userId, List<RepoCountUpdateModel> repoCountList)
         {
             try
-            { 
+            {
+                if (repoCountList.Count == 0)
+                    throw new NullReferenceException();
                 DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
                 log.Info($"Updating repository counts for user");
                 dbService.updateRepoCount(userId, repoCountList);
                 return new StatusDetailsModel{status = "Success", message = "Successful"};
+            }
+            catch(NullReferenceException ex)
+            {
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+                return new StatusDetailsModel { status = "Failure", message = "Repository Count List Cannot be empty." };
+
             }
             catch(Exception ex)
             {

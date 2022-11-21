@@ -81,33 +81,14 @@ namespace GitHelperAPI.Controllers
                 AuthenticationData authData = GetAuthCookieDetails();
                 log.Info($"Fetching user details for user: {authData.userName}");
                 GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
-                //get repo-names, repo - owner name and user - avatar - url
-                //List<RepoDetailsModel> repoList = client.GetRepoDetails();
-                //string avatarURL = client.GetAvtarUrl();
-                //UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
                 UserModel user = client.GetUserDetails();
                 List<RepositoryDetailsModel> userRepos = client.GetRepositoryDetails();
 
                 DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
                 List<RepoActivities> repoActivities = dbService.fetchActivityDetails(user.userId);
-                //long favouriteRepoId = dbService.getFavourite(user.userId);
-
-                /*List<RepoFavouriteCount> repoList = new List<RepoFavouriteCount>();
-                foreach (RepositoryDetailsModel repo in userRepos)
-                {
-                    RepoFavouriteCount repoFavouriteCount = new RepoFavouriteCount { repoId = repo.repoId,
-                                      repoName = repo.repoName, repoOwner = repo.repoOwner, isFavourite = false, count = 0};
-                    if(favouriteRepoId!=-1 && repo.repoId == favouriteRepoId)
-                    {
-                        repoFavouriteCount.isFavourite = true;
-                    }
-                    repoList.Add(repoFavouriteCount);
-                }*/
-
                 List<RepoFavouriteCount> repoList = (from userRepo in userRepos
                                                             join repoActivity in repoActivities
                                        on userRepo.repoId equals repoActivity.repoId into pn
-                                       //orderby y.ProducDate
                                        select new RepoFavouriteCount()
                                        {
                                            repoId = userRepo.repoId,

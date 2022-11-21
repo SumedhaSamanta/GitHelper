@@ -1,4 +1,12 @@
-﻿using System;
+﻿/* 
+ Created By:        Shubham Jaiswal
+ Created Date:      18-11-2022
+ Modified Date:     21-11-2022
+ Purpose:           This is the implementation class of DbService class.
+ Purpose Type:      This class holds the implementation of all the abstract method of the DbService class.
+ Referenced files:  Model/RepoCountUpdateModel.cs, Model/RepoActivities.cs
+ */
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Data;
@@ -16,7 +24,13 @@ namespace GitHelperDAL.Services.Impl
         {
             this.co = co;
         }
-
+        /*
+           <summary>
+           It gets favourite repository of the particular user    
+           </summary>
+           <param name="userId">This is the user id of the particular user.  </param>
+           <returns>Returns favourite repository.</returns>
+       */
         public override long getFavourite(long userId)
         {
 
@@ -36,6 +50,14 @@ namespace GitHelperDAL.Services.Impl
 
         }
 
+        /*
+           <summary>
+           It removes favourite repository of the particular user    
+           </summary>
+           <param name="userId">This is the user id of the particular user.</param>
+           <param name="repoId">This is the repository id of specified repository of user.</param>
+           <returns>Returns true or false.</returns>
+       */
         public override bool removeFavourite(long userId, long repoId)
         {
             using (SqlConnection con = new SqlConnection(co))
@@ -50,6 +72,14 @@ namespace GitHelperDAL.Services.Impl
             }
         }
 
+        /*
+          <summary>
+          It removes favourite repository of the particular user    
+          </summary>
+          <param name="userId">This is the user id of the particular user.</param>
+          <param name="repoId">This is the repository id of specified repository of user.</param>
+          <returns>Returns true or false.</returns>
+      */
         public override void setFavourite(long userId, long repoId)
         {
             using (SqlConnection con = new SqlConnection(co))
@@ -63,6 +93,14 @@ namespace GitHelperDAL.Services.Impl
             }
         }
 
+        /*
+         <summary>
+         It update count of repository.    
+         </summary>
+         <param name="userId">This is the user id of the particular user.</param>
+         <param name="repoCountList">This is the list which contains repository and count associated with that repository.</param>
+         <returns>NA</returns>
+     */
         public override void updateRepoCount(long userId, List<RepoCountUpdateModel> repoCountList)
         {
             using (SqlConnection con = new SqlConnection(co))
@@ -93,6 +131,13 @@ namespace GitHelperDAL.Services.Impl
             }
         }
 
+        /*
+         <summary>
+         It gets the repository activity details of specified user.   
+         </summary>
+         <param name="userId">This is the user id of the particular user.</param>
+         <returns>Returns list of repository activity of specified user.</returns>
+     */
         public override List<RepoActivities> fetchActivityDetails(long userId)
         {
             using (SqlConnection con = new SqlConnection(co))

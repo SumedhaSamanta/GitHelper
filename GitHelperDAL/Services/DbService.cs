@@ -1,4 +1,14 @@
-﻿using System;
+﻿/* 
+ Created By:        Shubham Jaiswal
+ Created Date:      18-11-2022
+ Modified Date:     21-11-2022
+ Purpose:           Abstract service class that is responsible for creating and returning the necessary
+                    implementation subclass to the caller method. This class also acts as the base class
+                    to encapsulate the implementation of sub-classes.
+ Purpose Type:      This class acts as the reference type for creating and using actual database api implementation.
+ Referenced files:  NA
+ */
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
