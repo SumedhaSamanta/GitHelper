@@ -20,6 +20,11 @@ using HttpPostAttribute = System.Web.Http.HttpPostAttribute;
 using ActionNameAttribute = System.Web.Http.ActionNameAttribute;
 using System.Configuration;
 using GitHelperDAL.Model;
+using GitHelperAPI.CustomException;
+using GitHelperAPI.Utilities;
+using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Web.Security;
 
 namespace GitHelperAPI.Controllers
 {
@@ -29,6 +34,34 @@ namespace GitHelperAPI.Controllers
         private static readonly log4net.ILog log = LogHelper.GetLogger();
 
         /*
+            <summary>
+                responsible for reading username and token from authentication cookie
+            </summary>
+            <param> None </param>
+            <returns>username and token of the user; if not found, throws NullAuthCookieException</returns>
+        */
+        private AuthenticationData GetAuthCookieDetails()
+        {
+            AuthenticationData authData = null;
+            CookieHeaderValue cookie = Request.Headers.GetCookies(FormsAuthentication.FormsCookieName).FirstOrDefault();
+
+            if (cookie != null)
+            {
+                log.Info("Reading data from authentication cookie successful.");
+                string ticket = cookie[FormsAuthentication.FormsCookieName].Value;
+                authData = AuthenticationTicketUtil.getAuthenticationDataFromTicket(ticket);
+            }
+            else
+            {
+                log.Error("Authentication cookie data not found.");
+                //throwing error 
+                throw new NullAuthCookieException("Authentication cookie not found");
+            }
+
+            return authData;
+        }
+
+        /*
            <summary>
                sets a repository as favourite for a particular user by removing previous favourite if any.
            </summary>
@@ -36,15 +69,16 @@ namespace GitHelperAPI.Controllers
            <param name="repoId"> repoId of the repository to be set as favourite </param>
            <returns>whether setting favourite is successful or not</returns>
        */
-        [HttpGet]
+        [HttpPost]
         [ActionName("SetFavourite")]
-        public StatusDetailsModel SetFavourite(long userId, long repoId)
+        public StatusDetailsModel SetFavourite([FromBody]  long repoId)
         {
             try
             {
+                AuthenticationData authData = GetAuthCookieDetails();
                 DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
-                log.Info($"Setting repository {repoId} as favourite for user: {userId}");
-                dbService.setFavourite(userId, repoId);
+                log.Info($"Setting repository {repoId} as favourite for user: {authData.userName}");
+                dbService.setFavourite(authData.userId, repoId);
                 log.Info("Setting favourite is successful");
                 return new StatusDetailsModel { status = "Success", message = "Setting Favourite Successful" };
             }
@@ -64,15 +98,16 @@ namespace GitHelperAPI.Controllers
            <param name="repoId"> repoId of the repository to be removed from favourite </param>
            <returns>whether removing favourite is successful or not</returns>
        */
-        [HttpGet]
+        [HttpPost]
         [ActionName("RemoveFavourite")]
-        public StatusDetailsModel RemoveFavourite(long userId, long repoId)
+        public StatusDetailsModel RemoveFavourite([FromBody] long repoId)
         {
             try
             {
+                AuthenticationData authData = GetAuthCookieDetails();
                 DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
-                log.Info($"Removing repository {repoId} from favourite for user: {userId}");
-                bool isRemoved = dbService.removeFavourite(userId, repoId);
+                log.Info($"Removing repository {repoId} from favourite for user: {authData.userName}");
+                bool isRemoved = dbService.removeFavourite(authData.userId, repoId);
                 if (isRemoved)
                 {
                     log.Info("Removing favourite is successful");
@@ -102,15 +137,16 @@ namespace GitHelperAPI.Controllers
        */
         [HttpPost]
         [ActionName("UpdateRepoCount")]
-        public StatusDetailsModel UpdateRepoCount(long userId, List<RepoCountUpdateModel> repoCountList)
+        public StatusDetailsModel UpdateRepoCount(List<RepoCountUpdateModel> repoCountList)
         {
             try
             {
+                AuthenticationData authData = GetAuthCookieDetails();
                 if (repoCountList.Count == 0)
                     throw new NullReferenceException();
                 DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
                 log.Info($"Updating repository counts for user");
-                dbService.updateRepoCount(userId, repoCountList);
+                dbService.updateRepoCount(authData.userId, repoCountList);
                 return new StatusDetailsModel{status = "Success", message = "Successful"};
             }
             catch(NullReferenceException ex)

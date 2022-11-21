@@ -85,7 +85,7 @@ namespace GitHelperAPI.Controllers
                 List<RepositoryDetailsModel> userRepos = client.GetRepositoryDetails();
 
                 DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
-                List<RepoActivities> repoActivities = dbService.fetchActivityDetails(user.userId);
+                List<RepoActivities> repoActivities = dbService.fetchActivityDetails(authData.userId);
                 List<RepoFavouriteCount> repoList = (from userRepo in userRepos
                                                             join repoActivity in repoActivities
                                        on userRepo.repoId equals repoActivity.repoId into pn
@@ -100,7 +100,7 @@ namespace GitHelperAPI.Controllers
                                    ).ToList();
 
                 log.Info("Fetching successful.");
-                return new UserDetailsResponse{userId = user.userId, userName = user.userName, userAvatarUrl = user.userAvatarUrl, repoList = repoList};
+                return new UserDetailsResponse{userId = authData.userId, userName = user.userName, userAvatarUrl = user.userAvatarUrl, repoList = repoList};
             }
             catch (NullAuthCookieException ex)
             {

@@ -8,6 +8,8 @@
  */
 
 using GitHelperAPI.Models;
+using Microsoft.Ajax.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Web.Security;
 
@@ -23,14 +25,31 @@ namespace GitHelperAPI.Utilities
             <param name="userToken"> github personal access token for user authentication </param> 
             <returns>encrypted authentication token</returns>
         */
-        public static string createAuthenticationTicket(string userName, string userToken)
+        //public static string createAuthenticationTicket(string userName, string userToken)
+        //{
+        //    FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(1,
+        //                    userName,
+        //                    DateTime.Now,
+        //                    DateTime.Now.AddMinutes(30),
+        //                    false,
+        //                    userToken,
+        //                    FormsAuthentication.FormsCookiePath);
+
+        //    // Encrypt the ticket.
+        //    string encTicket = FormsAuthentication.Encrypt(ticket);
+
+        //    return encTicket;
+        //}
+
+
+        public static string createAuthenticationTicket(AuthenticationData authData)
         {
             FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(1,
-                            userName,
+                            authData.userName,
                             DateTime.Now,
                             DateTime.Now.AddMinutes(30),
                             false,
-                            userToken,
+                            JsonConvert.SerializeObject(authData),
                             FormsAuthentication.FormsCookiePath);
 
             // Encrypt the ticket.
@@ -49,7 +68,8 @@ namespace GitHelperAPI.Utilities
         public static AuthenticationData getAuthenticationDataFromTicket(string value)
         {
             FormsAuthenticationTicket ticket = FormsAuthentication.Decrypt(value);
-            return new AuthenticationData { userName = ticket.Name, userToken = ticket.UserData };
+            AuthenticationData authData = JsonConvert.DeserializeObject<AuthenticationData>(ticket.UserData);
+            return authData;
         }
     }
 }

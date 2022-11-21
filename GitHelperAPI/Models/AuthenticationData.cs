@@ -18,5 +18,6 @@ namespace GitHelperAPI.Models
     {
         public string userName { get; set; }
         public string userToken { get; set; }
+        public long userId { get; set; }
     }
 }

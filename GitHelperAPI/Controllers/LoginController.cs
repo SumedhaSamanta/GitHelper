@@ -10,6 +10,7 @@
 
 using GitHelperAPI.Models;
 using GitHelperAPI.Utilities;
+using GitHelperDAL.Model;
 using GitHelperDAL.Services;
 using Newtonsoft.Json.Linq;
 using System;
@@ -56,11 +57,13 @@ namespace GitHelperAPI.Controllers
                     if (isValidUser)
                     {
 
+                        UserModel user = gitApiService.GetUserDetails();
+
                         //return auth cookie and response for success
                         HttpResponseMessage responseMsg = Request.CreateResponse(HttpStatusCode.OK,
                             new StatusDetailsModel { status = "Success", message = "Authentication Successful" });
 
-                        string ticket = AuthenticationTicketUtil.createAuthenticationTicket(username, token);
+                        string ticket = AuthenticationTicketUtil.createAuthenticationTicket(new AuthenticationData { userId = user.userId, userName = username, userToken = token});
                         var cookie = new CookieHeaderValue(FormsAuthentication.FormsCookieName, ticket);
                         cookie.Expires = DateTimeOffset.Now.AddDays(1);
                         cookie.Domain = Request.RequestUri.Host;
