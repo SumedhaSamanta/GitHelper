@@ -92,5 +92,30 @@ namespace GitHelperDAL.Services.Impl
 
             }
         }
+
+        public override List<RepoActivities> fetchActivityDetails(long userId)
+        {
+            using (SqlConnection con = new SqlConnection(co))
+            {
+                con.Open();
+                SqlCommand cmd1 = new SqlCommand("dbo.fetch_repo_activity_details", con);
+                cmd1.CommandType = CommandType.StoredProcedure;
+                cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                SqlDataReader reader = cmd1.ExecuteReader();
+
+                List<RepoActivities> repoActivities = new List<RepoActivities>();
+                while (reader.Read())
+                {
+                    RepoActivities repoActivity = new RepoActivities
+                    {
+                        repoId = (long)reader["repository_id"],
+                        isFavourite = reader["is_favourite"] != null ? ((int)reader["is_favourite"]==0?false:true):false,
+                        count = (long)reader["count"]
+                    };
+                    repoActivities.Add(repoActivity);
+                }
+                return repoActivities;
+            }
+        }
     }
 }

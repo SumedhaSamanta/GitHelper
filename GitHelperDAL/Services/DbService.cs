@@ -17,6 +17,8 @@ namespace GitHelperDAL.Services
         public abstract long getFavourite(long userId);
 
         public abstract void updateRepoCount(long userId, List<RepoCountUpdateModel> repoCountList);
+
+        public abstract List<RepoActivities> fetchActivityDetails(long userId);
         static public void setDataSorce(string name, string connectionString)
         {
             _services.Add(name,new DbServiceImpl(connectionString));

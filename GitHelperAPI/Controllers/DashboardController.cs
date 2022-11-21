@@ -1,7 +1,7 @@
 ﻿/* 
  Created By:        Sumedha Samanta
  Created Date:      20-10-2022
- Modified Date:     17-11-2022
+ Modified Date:     21-11-2022
  Purpose:           This class is accessible to authenticated users only. It defines APIs for dashboard functionalities (fetching user details, repository details, and so on).
  Purpose Type:      Defines APIs for dashboard functionalities to serve authenticated user requests.
  Referenced files:  Utilities\AuthenticationTicketUtil.cs,
@@ -88,11 +88,11 @@ namespace GitHelperAPI.Controllers
                 UserModel user = client.GetUserDetails();
                 List<RepositoryDetailsModel> userRepos = client.GetRepositoryDetails();
 
-                //RepoInfoModel favouriteRepo = userRepos[0];
                 DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
-                long favouriteRepoId = dbService.getFavourite(user.userId);
+                List<RepoActivities> repoActivities = dbService.fetchActivityDetails(user.userId);
+                //long favouriteRepoId = dbService.getFavourite(user.userId);
 
-                List<RepoFavouriteCount> repoList = new List<RepoFavouriteCount>();
+                /*List<RepoFavouriteCount> repoList = new List<RepoFavouriteCount>();
                 foreach (RepositoryDetailsModel repo in userRepos)
                 {
                     RepoFavouriteCount repoFavouriteCount = new RepoFavouriteCount { repoId = repo.repoId,
@@ -102,7 +102,22 @@ namespace GitHelperAPI.Controllers
                         repoFavouriteCount.isFavourite = true;
                     }
                     repoList.Add(repoFavouriteCount);
-                }
+                }*/
+
+                List<RepoFavouriteCount> repoList = (from userRepo in userRepos
+                                                            join repoActivity in repoActivities
+                                       on userRepo.repoId equals repoActivity.repoId into pn
+                                       //orderby y.ProducDate
+                                       select new RepoFavouriteCount()
+                                       {
+                                           repoId = userRepo.repoId,
+                                           repoName = userRepo.repoName,
+                                           repoOwner = userRepo.repoOwner,
+                                           isFavourite = pn.FirstOrDefault() != null ? pn.FirstOrDefault().isFavourite : false,
+                                           count = pn.FirstOrDefault() != null? pn.FirstOrDefault().count : 0
+                                       }
+                                   ).ToList();
+
                 log.Info("Fetching successful.");
                 return new UserDetailsResponse{userId = user.userId, userName = user.userName, userAvatarUrl = user.userAvatarUrl, repoList = repoList};
             }
