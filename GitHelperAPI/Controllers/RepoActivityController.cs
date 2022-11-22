@@ -25,41 +25,13 @@ using GitHelperAPI.Utilities;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Web.Security;
+using GitHelper_1.Controllers;
 
 namespace GitHelperAPI.Controllers
 {
     [System.Web.Http.Authorize]
-    public class RepoActivityController : ApiController
+    public class RepoActivityController : BaseController
     {
-        private static readonly log4net.ILog log = LogHelper.GetLogger();
-
-        /*
-            <summary>
-                responsible for reading username and token from authentication cookie
-            </summary>
-            <param> None </param>
-            <returns>username and token of the user; if not found, throws NullAuthCookieException</returns>
-        */
-        private AuthenticationData GetAuthCookieDetails()
-        {
-            AuthenticationData authData = null;
-            CookieHeaderValue cookie = Request.Headers.GetCookies(FormsAuthentication.FormsCookieName).FirstOrDefault();
-
-            if (cookie != null)
-            {
-                log.Info("Reading data from authentication cookie successful.");
-                string ticket = cookie[FormsAuthentication.FormsCookieName].Value;
-                authData = AuthenticationTicketUtil.getAuthenticationDataFromTicket(ticket);
-            }
-            else
-            {
-                log.Error("Authentication cookie data not found.");
-                //throwing error 
-                throw new NullAuthCookieException("Authentication cookie not found");
-            }
-
-            return authData;
-        }
 
         /*
            <summary>

@@ -21,27 +21,9 @@ namespace GitHelperAPI.Utilities
             <summary>
                 create encrypted authentication ticket for corrosponding username and token.
             </summary>
-            <param name="userName"> username for user authentication </param>
-            <param name="userToken"> github personal access token for user authentication </param> 
+            <param name="authData"> contains username, token and userId </param>
             <returns>encrypted authentication token</returns>
         */
-        //public static string createAuthenticationTicket(string userName, string userToken)
-        //{
-        //    FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(1,
-        //                    userName,
-        //                    DateTime.Now,
-        //                    DateTime.Now.AddMinutes(30),
-        //                    false,
-        //                    userToken,
-        //                    FormsAuthentication.FormsCookiePath);
-
-        //    // Encrypt the ticket.
-        //    string encTicket = FormsAuthentication.Encrypt(ticket);
-
-        //    return encTicket;
-        //}
-
-
         public static string createAuthenticationTicket(AuthenticationData authData)
         {
             FormsAuthenticationTicket ticket = new FormsAuthenticationTicket(1,
