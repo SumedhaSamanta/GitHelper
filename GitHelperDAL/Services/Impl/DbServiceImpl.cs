@@ -36,16 +36,23 @@ namespace GitHelperDAL.Services.Impl
 
             using (SqlConnection con = new SqlConnection(co))
             {
-                con.Open();
+                try
+                {
+                    con.Open();
+                    SqlCommand cmd1 = new SqlCommand("dbo.get_fav", con);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
 
-                SqlCommand cmd1 = new SqlCommand("dbo.get_fav", con);
-                cmd1.CommandType = CommandType.StoredProcedure;
-                cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-
-                var result = cmd1.ExecuteScalar();
-                if (result is long)
-                    return (long)result;
-                else return -1;
+                    var result = cmd1.ExecuteScalar();
+                    if (result is long)
+                        return (long)result;
+                    else return -1;
+                }
+                catch(SqlException ex)
+                {
+                    throw new Exception(ex.Message,ex);
+                }
+                
             }
 
         }
@@ -62,13 +69,19 @@ namespace GitHelperDAL.Services.Impl
         {
             using (SqlConnection con = new SqlConnection(co))
             {
-                con.Open();
-                SqlCommand cmd1 = new SqlCommand("dbo.remove_fav", con);
-                cmd1.CommandType = CommandType.StoredProcedure;
-                cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
-                return (bool)cmd1.ExecuteScalar();
-
+                try 
+                {
+                    con.Open();
+                    SqlCommand cmd1 = new SqlCommand("dbo.remove_fav", con);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
+                    return (bool)cmd1.ExecuteScalar();
+                }
+                catch(SqlException ex)
+                {
+                    throw new Exception(ex.Message,ex);
+                }
             }
         }
 
@@ -84,12 +97,21 @@ namespace GitHelperDAL.Services.Impl
         {
             using (SqlConnection con = new SqlConnection(co))
             {
-                con.Open();
-                SqlCommand cmd1 = new SqlCommand("dbo.set_fav", con);
-                cmd1.CommandType = CommandType.StoredProcedure;
-                cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
-                cmd1.ExecuteNonQuery();
+                try
+                {
+                    con.Open();
+                    SqlCommand cmd1 = new SqlCommand("dbo.set_fav", con);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
+                    cmd1.ExecuteNonQuery();
+                }
+                catch(SqlException ex)
+                {
+                   
+                    throw new Exception (ex.Message,ex);
+                }
+                
             }
         }
 
@@ -105,28 +127,36 @@ namespace GitHelperDAL.Services.Impl
         {
             using (SqlConnection con = new SqlConnection(co))
             {
-                con.Open();
-                DataTable dt = new DataTable();
-                dt.Clear();
-                dt.Columns.Add("RepoId");
-                dt.Columns.Add("Count");
-                foreach (RepoCountUpdateModel repoCount in repoCountList)
+                try
                 {
-                    DataRow newRow = dt.NewRow();
-                    newRow["RepoId"] = repoCount.repoId;
-                    newRow["Count"] = repoCount.count;
-                    dt.Rows.Add(newRow);
+                    con.Open();
+                    DataTable dt = new DataTable();
+                    dt.Clear();
+                    dt.Columns.Add("RepoId");
+                    dt.Columns.Add("Count");
+                    foreach (RepoCountUpdateModel repoCount in repoCountList)
+                    {
+                        DataRow newRow = dt.NewRow();
+                        newRow["RepoId"] = repoCount.repoId;
+                        newRow["Count"] = repoCount.count;
+                        dt.Rows.Add(newRow);
+                    }
+                    SqlCommand cmd1 = new SqlCommand("dbo.set_count", con);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+
+                    var pList = new SqlParameter("@repoCountList", SqlDbType.Structured);
+                    pList.TypeName = "dbo.RepoCountList";
+                    pList.Value = dt;
+                    cmd1.Parameters.Add(pList);
+
+                    cmd1.ExecuteNonQuery();
                 }
-                SqlCommand cmd1 = new SqlCommand("dbo.set_count", con);
-                cmd1.CommandType = CommandType.StoredProcedure;
-                cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-
-                var pList = new SqlParameter("@repoCountList", SqlDbType.Structured);
-                pList.TypeName = "dbo.RepoCountList";
-                pList.Value = dt;
-                cmd1.Parameters.Add(pList);
-
-                cmd1.ExecuteNonQuery();
+                catch(SqlException ex)
+                {
+                    throw new Exception(ex.Message,ex);
+                }
+               
 
             }
         }
@@ -142,24 +172,32 @@ namespace GitHelperDAL.Services.Impl
         {
             using (SqlConnection con = new SqlConnection(co))
             {
-                con.Open();
-                SqlCommand cmd1 = new SqlCommand("dbo.fetch_repo_activity_details", con);
-                cmd1.CommandType = CommandType.StoredProcedure;
-                cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                SqlDataReader reader = cmd1.ExecuteReader();
-
-                List<RepoActivities> repoActivities = new List<RepoActivities>();
-                while (reader.Read())
+                try
                 {
-                    RepoActivities repoActivity = new RepoActivities
+                    con.Open();
+                    SqlCommand cmd1 = new SqlCommand("dbo.fetch_repo_activity_details", con);
+                    cmd1.CommandType = CommandType.StoredProcedure;
+                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    SqlDataReader reader = cmd1.ExecuteReader();
+
+                    List<RepoActivities> repoActivities = new List<RepoActivities>();
+                    while (reader.Read())
                     {
-                        repoId = (long)reader["repository_id"],
-                        isFavourite = reader["is_favourite"] != null ? ((int)reader["is_favourite"]==0?false:true):false,
-                        count = (long)reader["count"]
-                    };
-                    repoActivities.Add(repoActivity);
+                        RepoActivities repoActivity = new RepoActivities
+                        {
+                            repoId = (long)reader["repository_id"],
+                            isFavourite = reader["is_favourite"] != null ? ((int)reader["is_favourite"] == 0 ? false : true) : false,
+                            count = (long)reader["count"]
+                        };
+                        repoActivities.Add(repoActivity);
+                    }
+                    return repoActivities;
                 }
-                return repoActivities;
+                catch(SqlException ex)
+                {
+                    throw new Exception(ex.Message,ex);
+                }
+                
             }
         }
     }

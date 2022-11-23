@@ -99,7 +99,7 @@ namespace GitHelperDAL
             It gets all the basic details of the user    
            </summary>
            <param> NA </param>
-           <returns>Returns the user_id, url of the GitHub Avatar of the user.</returns>
+           <returns>Returns the user_id,username and url of the GitHub Avatar of the user.</returns>
        */
         public override UserModel GetUserDetails()
         {
