@@ -1,11 +1,11 @@
 ﻿/* 
  Created By:        Shubham Jaiswal
  Created Date:      23-10-2022
- Modified Date:     08-11-2022
+ Modified Date:     17-11-2022
  Purpose:           This is the implementation class of GitHubApiService class.This class uses Octokit to communicate
                     with  GitHub Api.
  Purpose Type:      This class holds the implementation of all the abstract method of the GitHubApiService class.
- Referenced files:  Model/CommitDetailsModel.cs, Model/LanguageDetails.cs, Model/ParticularRepoDetailsModel.cs, Model/RepoDetailModel.cs
+ Referenced files:  Model/CommitDetailsModel.cs, Model/LanguageDetails.cs, Model/ParticularRepoDetailsModel.cs, Model/RepoDetailModel.cs, Model/RepoInfoModel.cs, Response/UserDetailsResponse.cs
  */
 using System;
 using System.Collections.Generic;
@@ -96,12 +96,45 @@ namespace GitHelperDAL
 
         /*
            <summary>
-            It gets the list of repository name and owner.    
+            It gets all the basic details of the user    
            </summary>
            <param> NA </param>
-           <returns>Returns the list of the repository name and owner name.</returns>
+           <returns>Returns the user_id,username and url of the GitHub Avatar of the user.</returns>
        */
-        public override List<RepoDetailsModel> GetRepoDetails()
+        public override UserModel GetUserDetails()
+        {
+            var task = GetUser(clientDetail);
+            User user = task.Result;
+            return new UserModel { userId = user.Id, userName = user.Login, userAvatarUrl = user.AvatarUrl};
+        }
+
+        /*
+           <summary>
+            It gets all the repositories of the user    
+           </summary>
+           <param> NA </param>
+           <returns>Returns the repo_id,name and owner name of all the repositories.</returns>
+       */
+        public override List<RepositoryDetailsModel> GetRepositoryDetails()
+        {
+            var repositories = clientDetail.Repository.GetAllForCurrent().Result;
+            List<RepositoryDetailsModel> repoList = new List<RepositoryDetailsModel>();
+            foreach (var repository in repositories)
+            {
+                repoList.Add(new RepositoryDetailsModel { repoId = repository.Id,repoName = repository.Name,repoOwner = repository.Owner.Login});
+            }
+            return repoList;
+        }
+
+
+/*
+   <summary>
+    It gets the list of repository name and owner.    
+   </summary>
+   <param> NA </param>
+   <returns>Returns the list of the repository name and owner name.</returns>
+*/
+public override List<RepoDetailsModel> GetRepoDetails()
         {
             var repositories = clientDetail.Repository.GetAllForCurrent().Result;
             List<RepoDetailsModel> repoList = new List<RepoDetailsModel>();

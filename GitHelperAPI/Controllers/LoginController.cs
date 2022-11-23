@@ -8,8 +8,11 @@
                     Utilities\AuthenticationTicketUtil.cs
  */
 
+using GitHelper_1.Controllers;
+using GitHelperAPI.CustomException;
 using GitHelperAPI.Models;
 using GitHelperAPI.Utilities;
+using GitHelperDAL.Model;
 using GitHelperDAL.Services;
 using Newtonsoft.Json.Linq;
 using System;
@@ -25,9 +28,8 @@ using HttpPostAttribute = System.Web.Http.HttpPostAttribute;
 
 namespace GitHelperAPI.Controllers
 {
-    public class LoginController : ApiController
+    public class LoginController : BaseController
     {
-        private static readonly log4net.ILog log = LogHelper.GetLogger();
 
         /*
             <summary>
@@ -56,11 +58,13 @@ namespace GitHelperAPI.Controllers
                     if (isValidUser)
                     {
 
+                        UserModel user = gitApiService.GetUserDetails();
+
                         //return auth cookie and response for success
                         HttpResponseMessage responseMsg = Request.CreateResponse(HttpStatusCode.OK,
                             new StatusDetailsModel { status = "Success", message = "Authentication Successful" });
 
-                        string ticket = AuthenticationTicketUtil.createAuthenticationTicket(username, token);
+                        string ticket = AuthenticationTicketUtil.createAuthenticationTicket(new AuthenticationData { userId = user.userId, userName = username, userToken = token});
                         var cookie = new CookieHeaderValue(FormsAuthentication.FormsCookieName, ticket);
                         cookie.Expires = DateTimeOffset.Now.AddDays(1);
                         cookie.Domain = Request.RequestUri.Host;
@@ -93,14 +97,15 @@ namespace GitHelperAPI.Controllers
             }
         }
 
-            /*
-                <summary>
-                    erases authentication cookie data of current user before logging out
-                </summary>
-                <param> None </param>
-                <returns> apppropriate success message after logout </returns>
-            */
-            [HttpGet]
+        /*
+            <summary>
+                erases authentication cookie data of current user before logging out
+            </summary>
+            <param> None </param>
+            <returns> apppropriate success message after logout </returns>
+        */
+        [Authorize]
+        [HttpGet]
         [ActionName("Logout")]
         public HttpResponseMessage Logout()
         { 
@@ -135,6 +140,45 @@ namespace GitHelperAPI.Controllers
                 new StatusDetailsModel { status = "Unauthenticated", message = "User is Not Authenticated" });
             }
             
+        }
+
+        /* 
+            <summary>
+                send user details
+            </summary>
+            <param> None </param>
+            <returns> UserModel for the logged in user </returns>
+        */
+        [Authorize]
+        [HttpGet]
+        [ActionName("GetUser")]
+        public UserModel GetUser()
+        {
+            try
+            {
+                AuthenticationData authData = GetAuthCookieDetails();
+                log.Info($"Fetching user information for user: {authData.userName}");
+                GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
+                UserModel user = client.GetUserDetails();
+
+                log.Info("Fetching successful.");
+                return new UserModel { userId = authData.userId, userName = user.userName, userAvatarUrl = user.userAvatarUrl };
+            }
+            catch (NullAuthCookieException ex)
+            {
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+            catch (Exception ex)
+            {
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
+                throw new HttpResponseException(resp);
+            }
         }
 
         /*

@@ -1,7 +1,7 @@
 ﻿/* 
  Created By:        Sumedha Samanta
  Created Date:      20-10-2022
- Modified Date:     08-11-2022
+ Modified Date:     21-11-2022
  Purpose:           This class is accessible to authenticated users only. It defines APIs for dashboard functionalities (fetching user details, repository details, and so on).
  Purpose Type:      Defines APIs for dashboard functionalities to serve authenticated user requests.
  Referenced files:  Utilities\AuthenticationTicketUtil.cs,
@@ -23,45 +23,16 @@ using ActionNameAttribute = System.Web.Http.ActionNameAttribute;
 using GitHelperAPI.Models;
 using GitHelperDAL.Model;
 using GitHelperDAL.Services;
-using System.Web.Security;
-using System.Net.Http.Headers;
 using GitHelperAPI.CustomException;
+using GitHelperAPI.Response;
+using System.Configuration;
+using GitHelper_1.Controllers;
 
 namespace GitHelperAPI.Controllers
 {
     [Authorize]
-    public class DashboardController : ApiController
+    public class DashboardController : BaseController
     {
-        private static readonly log4net.ILog log = LogHelper.GetLogger();
-
-
-        /*
-            <summary>
-                responsible for reading username and token from authentication cookie
-            </summary>
-            <param> None </param>
-            <returns>username and token of the user; if not found, throws NullAuthCookieException</returns>
-        */
-        private AuthenticationData GetAuthCookieDetails()
-        {
-            AuthenticationData authData = null;
-            CookieHeaderValue cookie = Request.Headers.GetCookies(FormsAuthentication.FormsCookieName).FirstOrDefault();
-
-            if (cookie != null)
-            {
-                log.Info("Reading data from authentication cookie successful.");
-                string ticket = cookie[FormsAuthentication.FormsCookieName].Value;
-                authData = AuthenticationTicketUtil.getAuthenticationDataFromTicket(ticket);
-            }
-            else
-            {
-                log.Error("Authentication cookie data not found.");
-                //throwing error 
-                throw new NullAuthCookieException("Authentication cookie not found");
-            }
-
-            return authData;
-        }
 
         /*
            <summary>
@@ -72,19 +43,33 @@ namespace GitHelperAPI.Controllers
        */
         [HttpGet]
         [ActionName("GetUserDetails")]
-        public UserDetails GetUserDetails()
+        public UserDetailsResponse GetUserDetails()
         {
             try
             {
                 AuthenticationData authData = GetAuthCookieDetails();
                 log.Info($"Fetching user details for user: {authData.userName}");
                 GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
-                //get repo-names, repo - owner name and user - avatar - url
-                List<RepoDetailsModel> repoList = client.GetRepoDetails();
-                string avatarURL = client.GetAvtarUrl();
-                UserDetails result = new UserDetails { repoList = repoList, userAvatarUrl = avatarURL };
+                UserModel user = client.GetUserDetails();
+                List<RepositoryDetailsModel> userRepos = client.GetRepositoryDetails();
+
+                DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
+                List<RepoActivities> repoActivities = dbService.fetchActivityDetails(authData.userId);
+                List<RepoFavouriteCount> repoList = (from userRepo in userRepos
+                                                            join repoActivity in repoActivities
+                                       on userRepo.repoId equals repoActivity.repoId into pn
+                                       select new RepoFavouriteCount()
+                                       {
+                                           repoId = userRepo.repoId,
+                                           repoName = userRepo.repoName,
+                                           repoOwner = userRepo.repoOwner,
+                                           isFavourite = pn.FirstOrDefault() != null ? pn.FirstOrDefault().isFavourite : false,
+                                           count = pn.FirstOrDefault() != null? pn.FirstOrDefault().count : 0
+                                       }
+                                   ).ToList();
+
                 log.Info("Fetching successful.");
-                return result;
+                return new UserDetailsResponse{userId = authData.userId, userName = user.userName, userAvatarUrl = user.userAvatarUrl, repoList = repoList};
             }
             catch (NullAuthCookieException ex)
             {
@@ -98,6 +83,59 @@ namespace GitHelperAPI.Controllers
                 log.Error("Exception occured while processing request.");
                 log.Error($"Stack Trace :\n{ex.ToString()}");
                 
+                var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
+                throw new HttpResponseException(resp);
+            }
+        }
+
+        /*
+           <summary>
+               fetches repo list details of the authorized user for Dashboard UI
+           </summary>
+           <param> None </param>
+           <returns>list of repo names, owner names and user id of the user</returns>
+       */
+        [HttpGet]
+        [ActionName("GetUserRepoList")]
+        public List<RepoFavouriteCount> GetUserRepoList()
+        {
+            try
+            {
+                AuthenticationData authData = GetAuthCookieDetails();
+                log.Info($"Fetching repo list for user: {authData.userName}");
+                GitHubApiService client = GitHubApiService.getInstance(authData.userName, authData.userToken);
+                List<RepositoryDetailsModel> userRepos = client.GetRepositoryDetails();
+
+                DbService dbService = DbService.getInstance(ConfigurationManager.AppSettings["dataSourceName"]);
+                List<RepoActivities> repoActivities = dbService.fetchActivityDetails(authData.userId);
+                List<RepoFavouriteCount> repoList = (from userRepo in userRepos
+                                                     join repoActivity in repoActivities
+                                on userRepo.repoId equals repoActivity.repoId into pn
+                                                     select new RepoFavouriteCount()
+                                                     {
+                                                         repoId = userRepo.repoId,
+                                                         repoName = userRepo.repoName,
+                                                         repoOwner = userRepo.repoOwner,
+                                                         isFavourite = pn.FirstOrDefault() != null ? pn.FirstOrDefault().isFavourite : false,
+                                                         count = pn.FirstOrDefault() != null ? pn.FirstOrDefault().count : 0
+                                                     }
+                                   ).ToList();
+
+                log.Info("Fetching successful.");
+                return repoList;
+            }
+            catch (NullAuthCookieException ex)
+            {
+                log.Error(ex.Message);
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+                var resp = Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Bad Credentials. Please Login.");
+                throw new HttpResponseException(resp);
+            }
+            catch (Exception ex)
+            {
+                log.Error("Exception occured while processing request.");
+                log.Error($"Stack Trace :\n{ex.ToString()}");
+
                 var resp = Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Bad Request.");
                 throw new HttpResponseException(resp);
             }
