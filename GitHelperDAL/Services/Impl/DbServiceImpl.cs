@@ -39,7 +39,7 @@ namespace GitHelperDAL.Services.Impl
                 try
                 {
                     con.Open();
-                    SqlCommand cmd1 = new SqlCommand("dbo.get_fav", con);
+                    SqlCommand cmd1 = new SqlCommand("dbo.sp_get_fav", con);
                     cmd1.CommandType = CommandType.StoredProcedure;
                     cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
 
@@ -72,7 +72,7 @@ namespace GitHelperDAL.Services.Impl
                 try 
                 {
                     con.Open();
-                    SqlCommand cmd1 = new SqlCommand("dbo.remove_fav", con);
+                    SqlCommand cmd1 = new SqlCommand("dbo.sp_remove_fav", con);
                     cmd1.CommandType = CommandType.StoredProcedure;
                     cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
                     cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
@@ -100,7 +100,7 @@ namespace GitHelperDAL.Services.Impl
                 try
                 {
                     con.Open();
-                    SqlCommand cmd1 = new SqlCommand("dbo.set_fav", con);
+                    SqlCommand cmd1 = new SqlCommand("dbo.sp_set_fav", con);
                     cmd1.CommandType = CommandType.StoredProcedure;
                     cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
                     cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
@@ -141,7 +141,7 @@ namespace GitHelperDAL.Services.Impl
                         newRow["Count"] = repoCount.count;
                         dt.Rows.Add(newRow);
                     }
-                    SqlCommand cmd1 = new SqlCommand("dbo.set_count", con);
+                    SqlCommand cmd1 = new SqlCommand("dbo.sp_set_count", con);
                     cmd1.CommandType = CommandType.StoredProcedure;
                     cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
 
@@ -175,7 +175,7 @@ namespace GitHelperDAL.Services.Impl
                 try
                 {
                     con.Open();
-                    SqlCommand cmd1 = new SqlCommand("dbo.fetch_repo_activity_details", con);
+                    SqlCommand cmd1 = new SqlCommand("dbo.sp_fetch_repo_activity_details", con);
                     cmd1.CommandType = CommandType.StoredProcedure;
                     cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
                     SqlDataReader reader = cmd1.ExecuteReader();
