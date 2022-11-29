@@ -215,12 +215,37 @@ public override List<RepoDetailsModel> GetRepoDetails()
         public override List<CommitDetailsModel> GetCommitDetails(string owner, string repositoryName)
         {
             List<CommitDetailsModel> commitMessages = new List<CommitDetailsModel>();
-            var commits = clientDetail.Repository.Commit.GetAll(owner, repositoryName).Result;
-            foreach (var commit in commits)
+            try
             {
-                commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date }) ;
+
+                var commits = clientDetail.Repository.Commit.GetAll(owner, repositoryName).Result;
+                foreach (var commit in commits)
+                {
+                    commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date }) ;
+                }
+                return commitMessages;
             }
-            return commitMessages;
+            catch (AggregateException ex)
+            {
+                ex.Handle(x =>
+                {
+                    if (x is Octokit.ApiException)
+                    {
+                        if (x.Message == "Git Repository is empty.")
+                        {
+                            return true;
+                        }
+                    }
+                    // Other exceptions will not be handled here.
+                    return false;
+
+                });
+                return commitMessages;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         
@@ -254,13 +279,39 @@ public override List<RepoDetailsModel> GetRepoDetails()
         {
 
             List<CommitDetailsModel> commitMessages = new List<CommitDetailsModel>();
-            var request = new CommitRequest { Since = startTimeStamp, Until = endTimeStamp };
-            var commitList = clientDetail.Repository.Commit.GetAll(owner, repositoryName, request).Result;
-            foreach (var commit in commitList)
+            try
             {
-                commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date });
+                var request = new CommitRequest { Since = startTimeStamp, Until = endTimeStamp };
+                var commitList = clientDetail.Repository.Commit.GetAll(owner, repositoryName, request).Result;
+                foreach (var commit in commitList)
+                {
+                    commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date });
+                }
+                return commitMessages;
             }
-            return commitMessages;
+            catch (AggregateException ex)
+            {
+                ex.Handle(x =>
+                {
+                    if (x is Octokit.ApiException)
+                    {
+                        if (x.Message == "Git Repository is empty.")
+                        {
+                            return true;
+                        }
+                    }
+                    // Other exceptions will not be handled here.
+                    return false;
+
+                });
+                return commitMessages;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+
         }
 
 
@@ -276,20 +327,46 @@ public override List<RepoDetailsModel> GetRepoDetails()
       */
         public override List<CommitDetailsModel> GetPaginatedCommits(string owner, string repositoryName, int pageNumber, int pageSize)
         {
-
             List<CommitDetailsModel> commitMessages = new List<CommitDetailsModel>();
-            var request = new ApiOptions
+            try
             {
-                PageSize = pageSize,
-                StartPage = pageNumber, // 1-indexed value
-                PageCount = 1
-            };
-            var commitList = clientDetail.Repository.Commit.GetAll(owner, repositoryName, request).Result;
-            foreach (var commit in commitList)
-            {
-                commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date });
+                
+                var request = new ApiOptions
+                {
+                    PageSize = pageSize,
+                    StartPage = pageNumber, // 1-indexed value
+                    PageCount = 1
+                };
+
+                var commitList = clientDetail.Repository.Commit.GetAll(owner, repositoryName, request).Result;
+                foreach (var commit in commitList)
+                {
+                    commitMessages.Add(new CommitDetailsModel { commitAuthorName = commit.Commit.Author.Name, commitMessage = commit.Commit.Message, commitDateTime = commit.Commit.Committer.Date });
+                }
+
+                return commitMessages;
             }
-            return commitMessages;
+            catch(AggregateException ex)
+            {
+                ex.Handle(x =>
+                {
+                    if (x is Octokit.ApiException)
+                    {
+                       if(x.Message == "Git Repository is empty.")
+                        {
+                            return true;
+                        }                       
+                    }
+                    // Other exceptions will not be handled here.
+                    return false;
+
+                });
+                return commitMessages;
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
         }
 
     }
