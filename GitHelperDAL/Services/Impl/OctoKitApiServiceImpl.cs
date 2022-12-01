@@ -23,6 +23,7 @@ namespace GitHelperDAL
     public class OctoKitApiServiceImpl : GitHubApiService
     {
         private GitHubClient clientDetail;
+        private readonly static string REPO_IS_EMPTY_ERROR = "Git Repository is empty.";
 
         private string userName;
 
@@ -231,7 +232,7 @@ public override List<RepoDetailsModel> GetRepoDetails()
                 {
                     if (x is Octokit.ApiException)
                     {
-                        if (x.Message == "Git Repository is empty.")
+                        if (x.Message == REPO_IS_EMPTY_ERROR)
                         {
                             return true;
                         }
@@ -295,7 +296,7 @@ public override List<RepoDetailsModel> GetRepoDetails()
                 {
                     if (x is Octokit.ApiException)
                     {
-                        if (x.Message == "Git Repository is empty.")
+                        if (x.Message == REPO_IS_EMPTY_ERROR)
                         {
                             return true;
                         }
@@ -337,7 +338,6 @@ public override List<RepoDetailsModel> GetRepoDetails()
                     StartPage = pageNumber, // 1-indexed value
                     PageCount = 1
                 };
-
                 var commitList = clientDetail.Repository.Commit.GetAll(owner, repositoryName, request).Result;
                 foreach (var commit in commitList)
                 {
@@ -352,7 +352,7 @@ public override List<RepoDetailsModel> GetRepoDetails()
                 {
                     if (x is Octokit.ApiException)
                     {
-                       if(x.Message == "Git Repository is empty.")
+                       if(x.Message == REPO_IS_EMPTY_ERROR)
                         {
                             return true;
                         }                       
