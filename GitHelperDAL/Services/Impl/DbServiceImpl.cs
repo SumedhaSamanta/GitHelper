@@ -39,11 +39,11 @@ namespace GitHelperDAL.Services.Impl
                 try
                 {
                     connection.Open();
-                    SqlCommand command = new SqlCommand("dbo.sp_get_fav", connection);
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    SqlCommand getFavouriteSp = new SqlCommand("dbo.sp_get_fav", connection);
+                    getFavouriteSp.CommandType = CommandType.StoredProcedure;
+                    getFavouriteSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
 
-                    var result = command.ExecuteScalar();
+                    var result = getFavouriteSp.ExecuteScalar();
                     if (result is long)
                         return (long)result;
                     else return -1;
@@ -72,11 +72,11 @@ namespace GitHelperDAL.Services.Impl
                 try 
                 {
                     connection.Open();
-                    SqlCommand command = new SqlCommand("dbo.sp_remove_fav", connection);
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                    command.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
-                    return (bool)command.ExecuteScalar();
+                    SqlCommand removeFavouriteSp = new SqlCommand("dbo.sp_remove_fav", connection);
+                    removeFavouriteSp.CommandType = CommandType.StoredProcedure;
+                    removeFavouriteSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    removeFavouriteSp.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
+                    return (bool)removeFavouriteSp.ExecuteScalar();
                 }
                 catch(SqlException ex)
                 {
@@ -100,11 +100,11 @@ namespace GitHelperDAL.Services.Impl
                 try
                 {
                     connection.Open();
-                    SqlCommand command = new SqlCommand("dbo.sp_set_fav", connection);
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                    command.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
-                    command.ExecuteNonQuery();
+                    SqlCommand setFavouriteSp = new SqlCommand("dbo.sp_set_fav", connection);
+                    setFavouriteSp.CommandType = CommandType.StoredProcedure;
+                    setFavouriteSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    setFavouriteSp.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
+                    setFavouriteSp.ExecuteNonQuery();
                 }
                 catch(SqlException ex)
                 {
@@ -141,16 +141,16 @@ namespace GitHelperDAL.Services.Impl
                         newRow["Count"] = repoCount.count;
                         dt.Rows.Add(newRow);
                     }
-                    SqlCommand command = new SqlCommand("dbo.sp_set_count", connection);
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    SqlCommand setCountSp = new SqlCommand("dbo.sp_set_count", connection);
+                    setCountSp.CommandType = CommandType.StoredProcedure;
+                    setCountSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
 
                     var pList = new SqlParameter("@repoCountList", SqlDbType.Structured);
                     pList.TypeName = "dbo.RepoCountList";
                     pList.Value = dt;
-                    command.Parameters.Add(pList);
+                    setCountSp.Parameters.Add(pList);
 
-                    command.ExecuteNonQuery();
+                    setCountSp.ExecuteNonQuery();
                 }
                 catch(SqlException ex)
                 {
@@ -175,10 +175,10 @@ namespace GitHelperDAL.Services.Impl
                 try
                 {
                     connection.Open();
-                    SqlCommand command = new SqlCommand("dbo.sp_fetch_repo_activity_details", connection);
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                    SqlDataReader reader = command.ExecuteReader();
+                    SqlCommand repoActivityDetailsSp = new SqlCommand("dbo.sp_fetch_repo_activity_details", connection);
+                    repoActivityDetailsSp.CommandType = CommandType.StoredProcedure;
+                    repoActivityDetailsSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    SqlDataReader reader = repoActivityDetailsSp.ExecuteReader();
 
                     List<RepoActivities> repoActivities = new List<RepoActivities>();
                     while (reader.Read())
