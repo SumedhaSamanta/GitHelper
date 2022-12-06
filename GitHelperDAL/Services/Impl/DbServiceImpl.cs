@@ -19,10 +19,10 @@ namespace GitHelperDAL.Services.Impl
 {
     public class DbServiceImpl : DbService
     {
-        private string co;
-        public DbServiceImpl(string co)
+        private string conectDb;
+        public DbServiceImpl(string conectDb)
         {
-            this.co = co;
+            this.conectDb = conectDb;
         }
         /*
            <summary>
@@ -34,16 +34,16 @@ namespace GitHelperDAL.Services.Impl
         public override long getFavourite(long userId)
         {
 
-            using (SqlConnection con = new SqlConnection(co))
+            using (SqlConnection connection = new SqlConnection(conectDb))
             {
                 try
                 {
-                    con.Open();
-                    SqlCommand cmd1 = new SqlCommand("dbo.sp_get_fav", con);
-                    cmd1.CommandType = CommandType.StoredProcedure;
-                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    connection.Open();
+                    SqlCommand getFavouriteSp = new SqlCommand("dbo.sp_get_fav", connection);
+                    getFavouriteSp.CommandType = CommandType.StoredProcedure;
+                    getFavouriteSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
 
-                    var result = cmd1.ExecuteScalar();
+                    var result = getFavouriteSp.ExecuteScalar();
                     if (result is long)
                         return (long)result;
                     else return -1;
@@ -67,16 +67,16 @@ namespace GitHelperDAL.Services.Impl
        */
         public override bool removeFavourite(long userId, long repoId)
         {
-            using (SqlConnection con = new SqlConnection(co))
+            using (SqlConnection connection = new SqlConnection(conectDb))
             {
                 try 
                 {
-                    con.Open();
-                    SqlCommand cmd1 = new SqlCommand("dbo.sp_remove_fav", con);
-                    cmd1.CommandType = CommandType.StoredProcedure;
-                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                    cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
-                    return (bool)cmd1.ExecuteScalar();
+                    connection.Open();
+                    SqlCommand removeFavouriteSp = new SqlCommand("dbo.sp_remove_fav", connection);
+                    removeFavouriteSp.CommandType = CommandType.StoredProcedure;
+                    removeFavouriteSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    removeFavouriteSp.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
+                    return (bool)removeFavouriteSp.ExecuteScalar();
                 }
                 catch(SqlException ex)
                 {
@@ -95,16 +95,16 @@ namespace GitHelperDAL.Services.Impl
       */
         public override void setFavourite(long userId, long repoId)
         {
-            using (SqlConnection con = new SqlConnection(co))
+            using (SqlConnection connection = new SqlConnection(conectDb))
             {
                 try
                 {
-                    con.Open();
-                    SqlCommand cmd1 = new SqlCommand("dbo.sp_set_fav", con);
-                    cmd1.CommandType = CommandType.StoredProcedure;
-                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                    cmd1.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
-                    cmd1.ExecuteNonQuery();
+                    connection.Open();
+                    SqlCommand setFavouriteSp = new SqlCommand("dbo.sp_set_fav", connection);
+                    setFavouriteSp.CommandType = CommandType.StoredProcedure;
+                    setFavouriteSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    setFavouriteSp.Parameters.Add("@repository_id", SqlDbType.BigInt).Value = repoId;
+                    setFavouriteSp.ExecuteNonQuery();
                 }
                 catch(SqlException ex)
                 {
@@ -125,11 +125,11 @@ namespace GitHelperDAL.Services.Impl
      */
         public override void updateRepoCount(long userId, List<RepoCountUpdateModel> repoCountList)
         {
-            using (SqlConnection con = new SqlConnection(co))
+            using (SqlConnection connection = new SqlConnection(conectDb))
             {
                 try
                 {
-                    con.Open();
+                    connection.Open();
                     DataTable dt = new DataTable();
                     dt.Clear();
                     dt.Columns.Add("RepoId");
@@ -141,16 +141,16 @@ namespace GitHelperDAL.Services.Impl
                         newRow["Count"] = repoCount.count;
                         dt.Rows.Add(newRow);
                     }
-                    SqlCommand cmd1 = new SqlCommand("dbo.sp_set_count", con);
-                    cmd1.CommandType = CommandType.StoredProcedure;
-                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    SqlCommand setCountSp = new SqlCommand("dbo.sp_set_count", connection);
+                    setCountSp.CommandType = CommandType.StoredProcedure;
+                    setCountSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
 
                     var pList = new SqlParameter("@repoCountList", SqlDbType.Structured);
                     pList.TypeName = "dbo.RepoCountList";
                     pList.Value = dt;
-                    cmd1.Parameters.Add(pList);
+                    setCountSp.Parameters.Add(pList);
 
-                    cmd1.ExecuteNonQuery();
+                    setCountSp.ExecuteNonQuery();
                 }
                 catch(SqlException ex)
                 {
@@ -170,15 +170,15 @@ namespace GitHelperDAL.Services.Impl
      */
         public override List<RepoActivities> fetchActivityDetails(long userId)
         {
-            using (SqlConnection con = new SqlConnection(co))
+            using (SqlConnection connection = new SqlConnection(conectDb))
             {
                 try
                 {
-                    con.Open();
-                    SqlCommand cmd1 = new SqlCommand("dbo.sp_fetch_repo_activity_details", con);
-                    cmd1.CommandType = CommandType.StoredProcedure;
-                    cmd1.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
-                    SqlDataReader reader = cmd1.ExecuteReader();
+                    connection.Open();
+                    SqlCommand repoActivityDetailsSp = new SqlCommand("dbo.sp_fetch_repo_activity_details", connection);
+                    repoActivityDetailsSp.CommandType = CommandType.StoredProcedure;
+                    repoActivityDetailsSp.Parameters.Add("@user_id", SqlDbType.BigInt).Value = userId;
+                    SqlDataReader reader = repoActivityDetailsSp.ExecuteReader();
 
                     List<RepoActivities> repoActivities = new List<RepoActivities>();
                     while (reader.Read())
